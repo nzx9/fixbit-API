@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\IssueController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,5 +22,6 @@ Route::post("users/login", [UserController::class, "loginUser"]);
 Route::middleware("auth:api")->group(function () {
     Route::get("user", [UserController::class, "userDetails"]);
     Route::resource("projects", ProjectController::class);
+    Route::resource("projects/{pid}/issues", IssueController::class);
 });
 
