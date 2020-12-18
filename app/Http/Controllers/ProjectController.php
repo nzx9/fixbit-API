@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Project;
 use App\Models\ProjectUserSearch;
-use Illuminate\Support\Facades\Schema;
 
 class ProjectController extends Controller
 {
@@ -34,12 +33,27 @@ class ProjectController extends Controller
                 foreach($project_ids as $project_id){
                     $projects[] = Project::find($project_id->pid);
                 }
-                return response()->json(["status"=> 200, "data"=> $projects]);
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "project fetched successfully",
+                    "data"    => $projects], $this->status_ok);
             }else{
-                return response()->json(["status"=> 400, "data"=> NULL]);
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "notfound",
+                    "msg"     => "project not found",
+                    "data"    => null], $this->status_notfound);
             }
         }else{
-            return response()->json(["status"=> 400, "data"=> NULL]);
+            return response()->json([
+                "success" => false,
+                "type"    => "error",
+                "reason"  => "unauthorized",
+                "msg"     => "Unauthorized",
+                "data"    => null], $this->status_unauthorized);
         }
     }
 
@@ -87,7 +101,7 @@ class ProjectController extends Controller
                     "status"  => $this->status_badrequest,
                     "success" => false,
                     "type"    => "error",
-                    "reason"  => "create error",
+                    "reason"  => "not create",
                     "msg"     => "project create failed",
                     "data"    => null
                 ], $this->status_forbidden);
@@ -116,8 +130,8 @@ class ProjectController extends Controller
                 return response()->json([
                     "success" => false,
                     "type"    => "error",
-                    "reason"  => "unknown error",
-                    "msg"     => "somthing went wrong, please contact support",
+                    "reason"  => "unknown",
+                    "msg"     => "something went wrong, please contact support",
                     "data"    => null
                 ], $this->status_forbidden);
             }
@@ -134,8 +148,9 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         if(!is_null($user)){
-            $pu = ProjectUserSearch::where('pid', $id)->where('is_public', true)->orWhere('pid', $id)->where('uid', $user->id)->get();
-            if(count($pu) === 1 && $project = Project::find($pu[0]->pid)){
+            $pu = new ProjectUserSearch();
+            $pu_ids = $pu->projectIdsUserCanAccess($id, $user->id);
+            if(count($pu_ids) === 1 && $project = Project::find($pu_ids[0]->pid)){
                 return response()->json([
                     "success" => true,
                     "type"    => "success",
@@ -146,7 +161,7 @@ class ProjectController extends Controller
                 return response()->json([
                     "success" => false,
                     "type"    => "error",
-                    "reason"  => "view error",
+                    "reason"  => "not fetched",
                     "msg"     => "No such project to view",
                     "data"    => null], $this->status_notfound);
             }
@@ -154,7 +169,7 @@ class ProjectController extends Controller
             return response()->json([
                 "success" => false,
                 "type"    => "error",
-                "reason"  => "ciew error",
+                "reason"  => "unauthorized",
                 "msg"     => "Unauthorized",
                 "data"    => null], $this->status_unauthorized);
         }
@@ -196,7 +211,7 @@ class ProjectController extends Controller
                 return response()->json([
                     "success" => false,
                     "type"    => "error",
-                    "reason"  => "update error",
+                    "reason"  => "not updated",
                     "msg"     => "No such project to update",
                     "data"    => null], $this->status_badrequest);
             }
@@ -204,7 +219,7 @@ class ProjectController extends Controller
             return response()->json([
                 "success" => false,
                 "type"    => "error",
-                "reason"  => "update error",
+                "reason"  => "unauthorized",
                 "msg"     => "Unauthorized",
                 "data"    => null], $this->status_unauthorized);
         }
@@ -220,7 +235,8 @@ class ProjectController extends Controller
     {
         $project = Project::find($id);
         if(!is_null($project) && $project->delete() === true){
-            Schema::dropIfExists("project_".$id);
+            $proj = new Project();
+            $proj->dropIssueTable();
             return response()->json([
                 "success" => true,
                 "type"    => "success",
@@ -231,7 +247,7 @@ class ProjectController extends Controller
             return response()->json([
                 "success" => false,
                 "type"    => "error",
-                "reason"  => "delete error",
+                "reason"  => "not deleted",
                 "msg"     => "No such project to delete",
                 "data"    => null], $this->status_badrequest);
         }

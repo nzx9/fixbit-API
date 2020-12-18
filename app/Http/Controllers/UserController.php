@@ -36,13 +36,12 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                "status"  => $this->status_badrequest,
                 "success" => false,
                 "type"    => "error",
                 "reason"  => "validation error",
                 "msg"     => $validator->errors(),
                 "data"    => null
-            ]);
+            ], $this->status_badrequest);
         }
 
         $inputs = $request->except('c_password');
@@ -52,22 +51,20 @@ class UserController extends Controller
 
         if (!is_null($user)) {
             return response()->json([
-                "status"  => $this->status_created,
                 "success" => true,
                 "type"    => "success",
-                "reason"  => "registration ok",
+                "reason"  => null,
                 "msg"     => "User created successfully",
                 "data"    => $user,
-            ]);
+            ], $this->status_created);
         } else {
             return response()->json([
-                "status"  => $this->status_badrequest,
                 "success" => false,
                 "type"    => "error",
-                "reason"  => "registration failed",
+                "reason"  => "not create",
                 "msg"     => "User not created",
                 "data"    => null
-            ]);
+            ], $this->status_forbidden);
         }
     }
     /**
@@ -86,37 +83,34 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                "status"  => $this->status_badrequest,
                 "success" => false,
                 "type"    => "error",
                 "reason"  => "validation error",
                 "msg"     => $validator->errors(),
                 "data"    => null,
-            ]);
+            ], $this->status_badrequest);
         }
 
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $user = Auth::user();
-            $token = $user->createToken("token")->accessToken;
+        if (Auth::guard('web')->attempt(['email' => $request->email, 'password' => $request->password])) {
+            $user = Auth::guard('web')->user();
+            $token = $user->createToken("fixbit-api")->accessToken;
 
             return response()->json([
-                "status"  => $this->status_ok,
                 "success" => true,
                 "type"    => "success",
-                "reason"  => "login ok",
-                "msg"     => "login successed",
+                "reason"  => null,
+                "msg"     => "Login successed",
                 "data"    => $user,
                 "token"   => $token
-            ]);
+            ], $this->status_ok);
         } else {
             return response()->json([
-                "status"  => $this->status_badrequest,
                 "success" => false,
                 "type"    => "error",
-                "reason"  => "login failed",
+                "reason"  => "invalid",
                 "msg"     => "Invalid login credientials",
                 "data"    => null
-            ]);
+            ], $this->status_unauthorized);
         }
     }
 
@@ -125,22 +119,20 @@ class UserController extends Controller
         $user = Auth::user();
         if (!is_null($user)) {
             return response()->json([
-                "status"  => $this->status_ok,
                 "success" => true,
                 "type"    => "success",
-                "reason"  => "user data",
-                "msg"     => "user found",
+                "reason"  => null,
+                "msg"     => "User found",
                 "data"    =>  $user
-            ]);
+            ], $this->status_ok);
         } else {
             return response()->json([
-                "status"  => $this->status_badrequest,
                 "success" => false,
                 "type"    => "error",
-                "reason"  => "user not found",
-                "msg"     => "user not found",
+                "reason"  => "notfound",
+                "msg"     => "User not found",
                 "data"    =>  null
-            ]);
+            ], $this->status_notfound);
         }
     }
 }
