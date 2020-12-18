@@ -35,20 +35,37 @@ class Project extends Model
         return $this->belongsToMany(User::class);
     }
 
-
+    /**
+     * Create issue table for given project
+     *
+     * @param int pid
+     * @return void
+     */
     public function createIssueTable($pid)
     {
         Schema::create('project_' . $pid, function (Blueprint $table) {
             $table->id();
-            $table->string('title')->length(50);
+            $table->string('title')->length(30);
             $table->string('description')->length(500);
-            $table->json('attachments');
+            $table->json('attachments')->nullable();
             $table->integer('creator_id')->index();
-            $table->integer('assign_to')->index();
+            $table->integer('assign_to')->nullable()->index();
             $table->integer('priority');
             $table->integer('type');
-            $table->json('comments');
+            $table->tinyInteger('is_open');
+            $table->json('comments')->nullable();
             $table->timestamps();
         });
+    }
+
+    /**
+     * Drop issue table of given pid
+     *
+     * @param
+     * @return void
+     */
+
+    public function dropIssueTable($pid){
+        Schema::dropIfExists("project_".$pid);
     }
 }
