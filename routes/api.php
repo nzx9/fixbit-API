@@ -20,7 +20,7 @@ Route::post("users/register", [UserController::class, "registerUser"]);
 Route::post("users/login", [UserController::class, "loginUser"]);
 
 Route::middleware("auth:api")->group(function () {
-    Route::get("user", [UserController::class, "userDetails"]);
+    Route::get("users/user", [UserController::class, "userDetails"]);
     Route::resource("projects", ProjectController::class);
     Route::resource("projects/{pid}/issues", IssueController::class);
 });
