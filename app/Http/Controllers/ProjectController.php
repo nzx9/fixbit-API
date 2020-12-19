@@ -186,42 +186,50 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         $project= Project::find($id);
+        if(!is_null($project)){
+            if(!is_null($user) && ($project->admin_id === $user->id)){
+                $validator = Validator::make($request->all(), [
+                    "name" => "unique:projects|max:30",
+                    "description" => "max:500",
+                    "is_public" => "boolean",
+                    "admin_id"  => "integer",
+                    "team_id"   => "integer"
+                ]);
 
-        if(!is_null($user) && ($project->admin_id === $user->id)){
-            $validator = Validator::make($request->all(), [
-                "name" => "unique:projects|max:30",
-                "description" => "max:500",
-                "is_public" => "boolean",
-                "admin_id"  => "integer",
-                "team_id"   => "integer"
-            ]);
+                if($validator->fails()){
+                    return response()->json([$validator->errors()], $this->status_badrequest);
+                }
 
-            if($validator->fails()){
-                return response()->json([$validator->errors()], $this->status_badrequest);
-            }
-
-            if(!is_null($project) && $project->update($request->all()) === true){
-                return response()->json([
-                    "success" => true,
-                    "type"    => "success",
-                    "reason"  => null,
-                    "msg"     => "Project updated successfully",
-                    "data"    => $project], $this->status_ok);
+                if(!is_null($project) && $project->update($request->all()) === true){
+                    return response()->json([
+                        "success" => true,
+                        "type"    => "success",
+                        "reason"  => null,
+                        "msg"     => "Project updated successfully",
+                        "data"    => $project], $this->status_ok);
+                }else{
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => "not updated",
+                        "msg"     => "No such project to update",
+                        "data"    => null], $this->status_badrequest);
+                }
             }else{
                 return response()->json([
                     "success" => false,
                     "type"    => "error",
-                    "reason"  => "not updated",
-                    "msg"     => "No such project to update",
-                    "data"    => null], $this->status_badrequest);
+                    "reason"  => "unauthorized",
+                    "msg"     => "Unauthorized",
+                    "data"    => null], $this->status_unauthorized);
             }
         }else{
             return response()->json([
                 "success" => false,
                 "type"    => "error",
-                "reason"  => "unauthorized",
-                "msg"     => "Unauthorized",
-                "data"    => null], $this->status_unauthorized);
+                "reason"  => "notfound",
+                "msg"     => "No such project to update",
+                "data"    => null], $this->status_notfound);
         }
     }
 
@@ -233,23 +241,32 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
-        $project = Project::find($id);
-        if(!is_null($project) && $project->delete() === true){
-            $proj = new Project();
-            $proj->dropIssueTable();
-            return response()->json([
-                "success" => true,
-                "type"    => "success",
-                "reason"  => null,
-                "msg"     => "Project deleted successfully",
-                "data"    => null], $this->status_ok);
-        }else{
-            return response()->json([
-                "success" => false,
-                "type"    => "error",
-                "reason"  => "not deleted",
-                "msg"     => "No such project to delete",
-                "data"    => null], $this->status_badrequest);
+        $user = Auth::user();
+        if(!is_null($user)){
+            $project = Project::find($id);
+            if(!is_null($project) && ($project->admin_id === $user->id) && ($project->delete() === true)){
+                $proj = new Project();
+                $proj->dropIssueTable("project_".$id);
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "Project deleted successfully",
+                    "data"    => null], $this->status_ok);
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "notfound",
+                    "msg"     => "No such project to delete",
+                    "data"    => null], $this->status_notfound);
+            }
         }
+        return response()->json([
+            "success" => false,
+            "type"    => "error",
+            "reason"  => "unauthorized",
+            "msg"     => "Unauthorized",
+            "data"    => null], $this->status_unauthorized);
     }
 }
