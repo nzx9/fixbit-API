@@ -107,7 +107,7 @@ class Issue extends Model
      * @param mixed value
      * @return boolean
      */
-    public function updateIssueByColumn(int $pid,int $iid,string $column,mixed $value){
+    public function updateIssueByColumn(int $pid,int $iid,string $column, $value){
         $updated = DB::table('project_'.$pid)->where('id', $iid)->update([
             $column => $value
         ]);
