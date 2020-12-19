@@ -3,9 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Team;
+use App\Models\TeamUserSearch;
 
 class TeamController extends Controller
 {
+    private $status_ok = 200;
+    private $status_created = 201;
+    private $status_accepted = 202;
+    private $status_badrequest = 400;
+    private $status_unauthorized = 401;
+    private $status_forbidden = 403;
+    private $status_notfound = 404;
+
     /**
      * Display a listing of the resource.
      *
@@ -13,17 +25,24 @@ class TeamController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        $user = Auth::user();
+        if(!is_null($user)){
+            $tus = new TeamUserSearch();
+            return response()->json([
+                "success" => true,
+                "type"    => "success",
+                "reason"  => null,
+                "msg"     => "team data fetched successfully",
+                "data"    => $tus->getTeamsUserIsAMember($user->id)
+            ], $this->status_ok);
+        }
+        return response()->json([
+            "success" => false,
+            "type"    => "error",
+            "reason"  => "unathorized",
+            "msg"     => "Unathorized",
+            "data"    => null
+        ], $this->status_unauthorized);
     }
 
     /**
@@ -49,17 +68,6 @@ class TeamController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -68,7 +76,7 @@ class TeamController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
     }
 
     /**
@@ -79,6 +87,10 @@ class TeamController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $user = Auth::user();
+        if(!is_null($user)){
+            Team::delete($id);
+            return response()-json([], $this->status_ok);
+        }
     }
 }
