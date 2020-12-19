@@ -53,4 +53,13 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class);
     }
 
+    /**
+     * Many to Many relationship defining
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function teams(){
+        return $this->belongsToMany(Teams::class);
+    }
+
 }
