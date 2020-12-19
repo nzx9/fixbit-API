@@ -1,4 +1,4 @@
-<p align="center"><a href="#" target="_blank"><img src="https://i.ibb.co/6rVx2CF/fixbit-logo-m-removebg-preview.png" width="400"></a></p>
+<p align="center"><a href="#" target="_blank"><img src="https://i.ibb.co/6rVx2CF/fixbit-logo-m-removebg-preview.png" width="200"></a></p>
 
 <!-- <p align="center">
 <a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
