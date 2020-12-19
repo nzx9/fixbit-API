@@ -28,7 +28,7 @@ class ProjectUserSearch extends Model
      * @param int uid
      * @return array
      */
-    public function projectIdsUserCanAccess($pid, $uid){
+    public function projectIdsUserCanAccess(int $pid,int $uid){
         $pu = $this->where('pid', $pid)->where('is_public', true)->orWhere('pid', $pid)->where('uid', $uid)->get();
         return $pu;
     }
@@ -40,7 +40,7 @@ class ProjectUserSearch extends Model
      * @param int uid
      * @return boolean
      */
-    public function isUserHasAccessToProject($pid, $uid){
+    public function isUserHasAccessToProject(int $pid,int $uid){
         $pu = $this->projectIdsUserCanAccess($pid, $uid);
         if(count($pu) === 1){
             return true;

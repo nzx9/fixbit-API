@@ -41,7 +41,7 @@ class Project extends Model
      * @param int pid
      * @return void
      */
-    public function createIssueTable($pid)
+    public function createIssueTable(int $pid)
     {
         Schema::create('project_' . $pid, function (Blueprint $table) {
             $table->id();
@@ -65,7 +65,7 @@ class Project extends Model
      * @return void
      */
 
-    public function dropIssueTable($pid){
+    public function dropIssueTable(int $pid){
         Schema::dropIfExists("project_".$pid);
     }
 }

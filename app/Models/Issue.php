@@ -37,7 +37,7 @@ class Issue extends Model
      * @param int pid
      * @return array
      */
-    public function getAllIssues($pid){
+    public function getAllIssues(int $pid){
         $issues = DB::table('project_'.$pid)->get();
         return $issues;
     }
@@ -49,7 +49,7 @@ class Issue extends Model
      * @param int iid
      * @return array
      */
-    public function getIssue($pid, $iid){
+    public function getIssue(int $pid,int $iid){
         $issue = DB::table('project_'.$pid)->where('id', $iid)->get();
         return $issue;
     }
