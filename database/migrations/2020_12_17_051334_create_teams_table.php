@@ -19,6 +19,7 @@ class CreateTeamsTable extends Migration
             $table->string('description')->length(500);
             $table->bigInteger('leader_id')->unsigned();
             $table->foreign('leader_id')->references('id')->on('users');
+            $table->tinyInteger('is_active')->default(true);
             $table->timestamps();
         });
     }
