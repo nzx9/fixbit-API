@@ -48,8 +48,8 @@ class Project extends Model
             $table->string('title')->length(30);
             $table->string('description')->length(500);
             $table->json('attachments')->nullable();
-            $table->integer('creator_id')->index();
-            $table->integer('assign_to')->nullable()->index();
+            $table->bigInteger('creator_id')->index();
+            $table->bigInteger('assign_to')->nullable()->index();
             $table->integer('priority');
             $table->integer('type');
             $table->tinyInteger('is_open');
