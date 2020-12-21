@@ -88,7 +88,9 @@ class Issue extends Model
             'priority'    => $data->priority,
             'type'        => $data->type,
             'is_open'     => $data->is_open,
-            'comments'    => $data->comments
+            'comments'    => $data->comments,
+            'created_at' => $team_cls->freshTimestamp(),
+                'updated_at' => $team_cls->freshTimestamp()
         ]);
 
         if(!is_null($updated)){
