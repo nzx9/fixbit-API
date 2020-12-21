@@ -25,7 +25,6 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = [];
         $user = Auth::user();
         if(!is_null($user)){
             $project_ids = ProjectUserSearch::where('uid', $user->id)->orWhere('is_public', true)->get();
@@ -37,14 +36,14 @@ class ProjectController extends Controller
                     "success" => true,
                     "type"    => "success",
                     "reason"  => null,
-                    "msg"     => "project fetched successfully",
+                    "msg"     => "Projects fetched successfully",
                     "data"    => $projects], $this->status_ok);
             }else{
                 return response()->json([
                     "success" => false,
                     "type"    => "error",
                     "reason"  => "notfound",
-                    "msg"     => "project not found",
+                    "msg"     => "Project not found",
                     "data"    => null], $this->status_notfound);
             }
         }else{
@@ -76,7 +75,6 @@ class ProjectController extends Controller
 
             if($validator->fails()){
                 return response()->json([
-                    "status"  => $this->status_badrequest,
                     "success" => false,
                     "type"    => "error",
                     "reason"  => "validation error",
@@ -91,18 +89,17 @@ class ProjectController extends Controller
                 "is_public"   => $request->is_public,
                 "creator_id"  => $user->id,
                 "admin_id"    => $user->id,
-                "team_id"     => $request->team_id
+                "team_id"     => $request->team_id,
             );
 
             $project = Project::create($project_data);
 
             if(is_null($project)){
                 return response()->json([
-                    "status"  => $this->status_badrequest,
                     "success" => false,
                     "type"    => "error",
                     "reason"  => "not create",
-                    "msg"     => "project create failed",
+                    "msg"     => "Project create failed",
                     "data"    => null
                 ], $this->status_forbidden);
             }
@@ -123,7 +120,7 @@ class ProjectController extends Controller
                     "success" => true,
                     "type"    => "success",
                     "reason"  => null,
-                    "msg"     => "project created successfully",
+                    "msg"     => "Project created successfully",
                     "data"    => $project
                 ], $this->status_created);
             }else{
@@ -131,7 +128,7 @@ class ProjectController extends Controller
                     "success" => false,
                     "type"    => "error",
                     "reason"  => "unknown",
-                    "msg"     => "something went wrong, please contact support",
+                    "msg"     => "Something went wrong, please contact support",
                     "data"    => null
                 ], $this->status_forbidden);
             }
@@ -197,7 +194,12 @@ class ProjectController extends Controller
                 ]);
 
                 if($validator->fails()){
-                    return response()->json([$validator->errors()], $this->status_badrequest);
+                    return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "validation error",
+                    "msg"     => $validator->errors(),
+                    "data"    => null], $this->status_badrequest);
                 }
 
                 if(!is_null($project) && $project->update($request->all()) === true){
@@ -246,7 +248,7 @@ class ProjectController extends Controller
             $project = Project::find($id);
             if(!is_null($project) && ($project->admin_id === $user->id) && ($project->delete() === true)){
                 $proj = new Project();
-                $proj->dropIssueTable("project_".$id);
+                $proj->dropIssueTable($id);
                 return response()->json([
                     "success" => true,
                     "type"    => "success",
