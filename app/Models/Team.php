@@ -4,10 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class Team extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        "name",
+        "description",
+        "leader_id",
+        "is_active",
+    ];
 
     protected $casts = [
         'leader_id' => 'integer',
@@ -29,7 +39,7 @@ class Team extends Model
      * @param int tid
      * @return void
      */
-    public function createIssueTable(int $tid)
+    public function createTeamTable(int $tid)
     {
         Schema::create('team_' . $tid, function (Blueprint $table) {
             $table->bigInteger('uid')->primary();
@@ -37,8 +47,23 @@ class Team extends Model
             $table->tinyInteger('is_leader')->nullable()->index();
             $table->tinyInteger('is_available');
             $table->string('role')->length('20')->nullable();
-            $table->timestamps();
+            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP'));
         });
+    }
+
+    /**
+     * Add team member to team table
+     *
+     * @param int tid
+     * @param array data
+     * @return boolean
+     */
+    public function addToTeamTable(int $tid,array $data)
+    {
+        $data_inserted = DB::table('team_'.$tid)->insert($data);
+        if($data_inserted) return true;
+        return false;
     }
 
     /**
@@ -48,7 +73,7 @@ class Team extends Model
      * @return void
      */
 
-    public function dropIssueTable(int $tid){
+    public function dropTeamTable(int $tid){
         Schema::dropIfExists("team_".$tid);
     }
 

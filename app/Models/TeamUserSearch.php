@@ -9,6 +9,17 @@ class TeamUserSearch extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        "tid",
+        "uid",
+    ];
+
+    protected $casts = [
+        'tid' => 'integer',
+        'uid' => 'integer'
+    ];
+
+
     /**
      * Teams, user is a member
      *
