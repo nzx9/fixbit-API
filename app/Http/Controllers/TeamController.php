@@ -28,13 +28,19 @@ class TeamController extends Controller
         $user = Auth::user();
         if(!is_null($user)){
             $tus = new TeamUserSearch();
+            $team_ids = $tus->getTeamsUserIsAMember($user->id);
+            if(count($team_ids) >= 0){
+                foreach($team_ids as $team_id){
+                    $teams[] = Team::find($team_id->tid);
+                }
             return response()->json([
                 "success" => true,
                 "type"    => "success",
                 "reason"  => null,
                 "msg"     => "team data fetched successfully",
-                "data"    => $tus->getTeamsUserIsAMember($user->id)
+                "data"    => $teams
             ], $this->status_ok);
+        }
         }
         return response()->json([
             "success" => false,
@@ -53,7 +59,80 @@ class TeamController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = Auth::user();
+        if(!is_null($user)){
+            $validator = Validator::make($request->all(), [
+                "name"        => "required|unique:teams|max:30",
+                "description" => "required|max:500",
+                ]);
+
+            if($validator->fails()){
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "validation error",
+                    "msg"     => $validator->errors(),
+                    "data"    => null
+                ], $this->status_badrequest);
+            }
+
+            $team_data = array(
+                "name"        =>$request->name,
+                "description" => $request->description,
+                "leader_id"  => $user->id,
+                "is_active"    => true,
+            );
+
+            $team = Team::create($team_data);
+
+            if(is_null($team)){
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "not create",
+                    "msg"     => "Team creation failed",
+                    "data"    => null
+                ], $this->status_forbidden);
+            }
+
+            $team_cls = new Team();
+            $team_cls->createTeamTable($team->id);
+            $data = array(
+                'uid'          => $user->id,
+                'name'         => $user->username,
+                'is_leader'    => true,
+                'is_available' => true,
+                'role'         => 'admin',
+                'created_at' => $team_cls->freshTimestamp(),
+                'updated_at' => $team_cls->freshTimestamp()
+            );
+            $team_cls->addToTeamTable($team->id, $data);
+
+            $tu_data = array(
+                "tid"       => $team->id,
+                "uid"       => $user->id,
+            );
+
+            $tu_search = TeamUserSearch::create($tu_data);
+
+            if(!is_null($tu_search)){
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "Team created successfully",
+                    "data"    => $team
+                ], $this->status_created);
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "unknown",
+                    "msg"     => "Something went wrong, please contact support",
+                    "data"    => null
+                ], $this->status_forbidden);
+            }
+        }
     }
 
     /**
@@ -64,7 +143,32 @@ class TeamController extends Controller
      */
     public function show($id)
     {
-        //
+        $user = Auth::user();
+        if(!is_null($user)){
+            $team = Team::find($id);
+            if(!is_null($team)){
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "Team view success",
+                    "data"    => $team], $this->status_ok);
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "not fetched",
+                    "msg"     => "No such team to view",
+                    "data"    => null], $this->status_notfound);
+            }
+        }else{
+            return response()->json([
+                "success" => false,
+                "type"    => "error",
+                "reason"  => "unauthorized",
+                "msg"     => "Unauthorized",
+                "data"    => null], $this->status_unauthorized);
+        }
     }
 
     /**
@@ -76,7 +180,58 @@ class TeamController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $user = Auth::user();
+        $team= Team::find($id);
+        if(!is_null($team)){
+            if(!is_null($user) && ($team->leader_id === $user->id)){
+                $validator = Validator::make($request->all(), [
+                    "name" => "unique:teams|max:30",
+                    "description" => "max:500",
+                    "leader_id" => "integer",
+                    "is_active"  => "boolean",
+                ]);
 
+                if($validator->fails()){
+                    return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "validation error",
+                    "msg"     => $validator->errors(),
+                    "data"    => null
+                    ],$this->status_badrequest);
+                }
+
+                if(!is_null($team) && $team->update($request->all()) === true){
+                    return response()->json([
+                        "success" => true,
+                        "type"    => "success",
+                        "reason"  => null,
+                        "msg"     => "Team updated successfully",
+                        "data"    => $team], $this->status_ok);
+                }else{
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => "not updated",
+                        "msg"     => "No such team to update",
+                        "data"    => null], $this->status_badrequest);
+                }
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "unauthorized",
+                    "msg"     => "Unauthorized",
+                    "data"    => null], $this->status_unauthorized);
+            }
+        }else{
+            return response()->json([
+                "success" => false,
+                "type"    => "error",
+                "reason"  => "notfound",
+                "msg"     => "No such team to update",
+                "data"    => null], $this->status_notfound);
+        }
     }
 
     /**
@@ -89,8 +244,31 @@ class TeamController extends Controller
     {
         $user = Auth::user();
         if(!is_null($user)){
-            Team::delete($id);
-            return response()-json([], $this->status_ok);
+            $team = Team::find($id);
+            if(!is_null($team) && ($team->leader_id === $user->id) && ($team->delete() === true)){
+                $tus = TeamUserSearch::where('tid', $id)->delete();
+                $team_cls = new Team();
+                $team_cls->dropTeamTable($id);
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "Team deleted successfully",
+                    "data"    => null], $this->status_ok);
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "notfound",
+                    "msg"     => "No such team to delete",
+                    "data"    => null], $this->status_notfound);
+            }
         }
+        return response()->json([
+            "success" => false,
+            "type"    => "error",
+            "reason"  => "unauthorized",
+            "msg"     => "Unauthorized",
+            "data"    => null], $this->status_unauthorized);
     }
 }
