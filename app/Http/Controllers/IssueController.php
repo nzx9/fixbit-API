@@ -99,7 +99,9 @@ class IssueController extends Controller
                     "creator_id"  => $user->id,
                     "priority"    => $request->priority,
                     "type"        => $request->type,
-                    "is_open"     => $request->is_open
+                    "is_open"     => $request->is_open,
+                    "created_at" => $issue->freshTimestamp(),
+                    "updated_at" => $issue->freshTimestamp()
                 );
                 $is = $issue->createIssue($pid, $data);
                 if($is){
