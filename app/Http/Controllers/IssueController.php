@@ -238,7 +238,15 @@ class IssueController extends Controller
                             "data"    => null], $this->status_badrequest);
                     }
                 }else{
-                    $updated = $issue->updateIssue($pid, $iid, $request->all());
+                    $request->request->add(['updated_at' => $issue->freshTimeStamp()]);
+                    $updated = $issue->updateIssue($pid, $iid,
+                    $request->only([
+                        'title','description', 'is_open',
+                        'priority', 'type', 'assign_to', 'attachments',
+                        'comments', 'updated_at'
+                        ])
+                    );
+
                     if($updated){
                         return response()->json([
                             "success" => true,

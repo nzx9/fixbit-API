@@ -79,19 +79,8 @@ class Issue extends Model
      * @param array data
      * @return boolean
      */
-    public function updateIssue(int $pid,int $iid,array $data){
-        $updated = DB::table('project_'.$pid)->where('id', $iid)->update([
-            'title'       => $data->title,
-            'description' => $data->description,
-            'attachments' => $data->attachments,
-            'assign_to'   => $data->assign_to,
-            'priority'    => $data->priority,
-            'type'        => $data->type,
-            'is_open'     => $data->is_open,
-            'comments'    => $data->comments,
-            'created_at' => $team_cls->freshTimestamp(),
-                'updated_at' => $team_cls->freshTimestamp()
-        ]);
+    public function updateIssue(int $pid,int $iid, $data){
+        $updated = DB::table('project_'.$pid)->where('id', $iid)->update($data);
 
         if(!is_null($updated)){
             return true;
