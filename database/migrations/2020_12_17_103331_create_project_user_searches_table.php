@@ -19,7 +19,8 @@ class CreateProjectUserSearchesTable extends Migration
             $table->foreign('pid')->references('id')->on('projects')->onDelete('cascade');
             $table->bigInteger('uid')->unsigned();
             $table->foreign('uid')->references('id')->on('users')->onDelete('cascade');
-            $table->tinyInteger('is_public')->on('projects')->onUpdate('cascade');
+            $table->tinyInteger('is_public');
+            $table->foreign('is_public')->references('is_public')->on('projects')->onUpdate('cascade');
             $table->timestamps();
         });
     }
