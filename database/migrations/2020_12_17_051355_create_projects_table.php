@@ -17,7 +17,7 @@ class CreateProjectsTable extends Migration
             $table->id();
             $table->string('name')->length('30')->unique();
             $table->string('description')->length(500);
-            $table->tinyInteger('is_public')->default(1);
+            $table->tinyInteger('is_public')->default(1)->index();
             $table->bigInteger('creator_id')->unsigned();
             $table->foreign('creator_id')->references('id')->on('users');
             $table->bigInteger('admin_id')->unsigned();
