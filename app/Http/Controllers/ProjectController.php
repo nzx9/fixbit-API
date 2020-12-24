@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use App\Models\Project;
+use App\Models\Team;
 use App\Models\ProjectUserSearch;
 
 class ProjectController extends Controller
@@ -29,15 +31,35 @@ class ProjectController extends Controller
         if(!is_null($user)){
             $project_ids = ProjectUserSearch::where('uid', $user->id)->orWhere('is_public', true)->get();
             if(count($project_ids) >= 0){
+                $projects = [];
+                $data = [];
                 foreach($project_ids as $project_id){
                     $projects[] = Project::find($project_id->pid);
+                }
+                foreach($projects as $project){
+                    $team_data = null;
+                    $member_data = null;
+                    if($project->team_id !== null){
+                        $team_data = Team::find($project->team_id);
+                        $member_data = DB::table("team_".$project->team_id)->get();
+                    }
+                    $issue_total_count = count(DB::table("project_".$project->id)->get());
+                    $issue_open_count = count(DB::table("project_".$project->id)->where("is_open", true)->get());
+                    $data[] = array(
+                        'project' => $project,
+                        'team' => array('info' => $team_data, 'members' => $member_data,
+                        'issue' => array(
+                            'total' => $issue_total_count,
+                            'open'  => $issue_open_count
+                        ))
+                    );
                 }
                 return response()->json([
                     "success" => true,
                     "type"    => "success",
                     "reason"  => null,
                     "msg"     => "Projects fetched successfully",
-                    "data"    => $projects], $this->status_ok);
+                    "data"    => $data], $this->status_ok);
             }else{
                 return response()->json([
                     "success" => false,
@@ -148,12 +170,24 @@ class ProjectController extends Controller
             $pu = new ProjectUserSearch();
             $pu_ids = $pu->projectIdsUserCanAccess($id, $user->id);
             if(count($pu_ids) === 1 && $project = Project::find($pu_ids[0]->pid)){
+                $team_data = null;
+                $member_data = null;
+                if($project->team_id !== null) {
+                    $team_data = Team::find($project->team_id);
+                    $member_data = DB::table("team_".$project->team_id)->get();
+                }
+                $data = array(
+                    'project' => $project,
+                    'team' => array(
+                        'info' => $team_data,
+                        'members' => $member_data
+                    ));
                 return response()->json([
                     "success" => true,
                     "type"    => "success",
                     "reason"  => null,
                     "msg"     => "Project view success",
-                    "data"    => $project], $this->status_ok);
+                    "data"    => $data], $this->status_ok);
             }else{
                 return response()->json([
                     "success" => false,
