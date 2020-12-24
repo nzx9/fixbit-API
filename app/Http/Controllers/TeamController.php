@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use App\Models\Team;
 use App\Models\TeamUserSearch;
 
@@ -30,17 +31,24 @@ class TeamController extends Controller
             $tus = new TeamUserSearch();
             $team_ids = $tus->getTeamsUserIsAMember($user->id);
             if(count($team_ids) >= 0){
+                $teams = [];
                 foreach($team_ids as $team_id){
-                    $teams[] = Team::find($team_id->tid);
+                    $team = Team::find($team_id->tid);
+                    $members = DB::table('team_'.$team_id->tid)->get();
+                    $teams[] = array(
+                        'info' => $team,
+                        'members' => $members ,
+                        'member_count' => count($members)
+                    );
                 }
-            return response()->json([
-                "success" => true,
-                "type"    => "success",
-                "reason"  => null,
-                "msg"     => "team data fetched successfully",
-                "data"    => $teams
-            ], $this->status_ok);
-        }
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "Teams fetched successfully",
+                    "data"    => $teams
+                ], $this->status_ok);
+            }
         }
         return response()->json([
             "success" => false,
