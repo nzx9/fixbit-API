@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\Project;
 use App\Models\Team;
+use App\Models\User;
 use App\Models\ProjectUserSearch;
 
 class ProjectController extends Controller
@@ -43,15 +44,17 @@ class ProjectController extends Controller
                         $team_data = Team::find($project->team_id);
                         $member_data = DB::table("team_".$project->team_id)->get();
                     }
+                    $admin = User::find($project->admin_id);
                     $issue_total_count = count(DB::table("project_".$project->id)->get());
                     $issue_open_count = count(DB::table("project_".$project->id)->where("is_open", true)->get());
                     $data[] = array(
                         'project' => $project,
-                        'team' => array('info' => $team_data, 'members' => $member_data,
+                        'team' => array('info' => $team_data, 'members' => $member_data),
+                        'admin' => $admin,
                         'issue' => array(
                             'total' => $issue_total_count,
                             'open'  => $issue_open_count
-                        ))
+                        )
                     );
                 }
                 return response()->json([
@@ -176,12 +179,13 @@ class ProjectController extends Controller
                     $team_data = Team::find($project->team_id);
                     $member_data = DB::table("team_".$project->team_id)->get();
                 }
+                $admin = User::find($project->admin_id);
                 $data = array(
                     'project' => $project,
                     'team' => array(
                         'info' => $team_data,
                         'members' => $member_data
-                    ));
+                    ), 'admin' => $admin);
                 return response()->json([
                     "success" => true,
                     "type"    => "success",
