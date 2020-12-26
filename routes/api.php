@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\MemberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,5 +26,6 @@ Route::middleware("auth:api")->group(function () {
     Route::resource("projects", ProjectController::class);
     Route::resource("projects/{pid}/issues", IssueController::class);
     Route::resource("teams", TeamController::class);
+    Route::resource("teams/{tid}/members", MemberController::class);
 });
 
