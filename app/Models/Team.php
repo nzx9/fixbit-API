@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class Team extends Model
 {
@@ -44,8 +45,8 @@ class Team extends Model
         Schema::create('team_' . $tid, function (Blueprint $table) {
             $table->bigInteger('uid')->primary();
             $table->string('name')->length(30);
-            $table->tinyInteger('is_leader')->nullable()->index();
-            $table->tinyInteger('is_available');
+            $table->tinyInteger('is_leader')->default(false);
+            $table->tinyInteger('is_available')->default(true);
             $table->string('role')->length('20')->nullable();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP'));
@@ -64,6 +65,25 @@ class Team extends Model
         $data_inserted = DB::table('team_'.$tid)->insert($data);
         if($data_inserted) return true;
         return false;
+    }
+
+    /**
+     * get all information of members in given team table
+     *
+     * @param int tid
+     * @param array data
+     * @return boolean
+     */
+    public function getInfoOfTeam(int $tid)
+    {
+        $data = null;
+        $members = DB::table('team_'.$tid)->get();
+        if(!is_null($members)){
+            foreach($members as $member){
+                $data[] = User::find($member->uid);
+            }
+        }
+        return $data;
     }
 
     /**
