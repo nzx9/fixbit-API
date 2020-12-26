@@ -15,7 +15,7 @@ class CreateProjectsTable extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->length('30')->unique();
+            $table->string('name')->length('25')->unique();
             $table->string('description')->length(500);
             $table->tinyInteger('is_public')->default(1)->index();
             $table->bigInteger('creator_id')->unsigned();
@@ -23,7 +23,7 @@ class CreateProjectsTable extends Migration
             $table->bigInteger('admin_id')->unsigned();
             $table->foreign('admin_id')->references('id')->on('users');
             $table->bigInteger('team_id')->unsigned()->nullable();
-            $table->foreign('team_id')->references('id')->on('teams');
+            $table->foreign('team_id')->references('id')->on('teams')->onDelete('set null');
             $table->timestamps();
         });
     }

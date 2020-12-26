@@ -16,7 +16,7 @@ class Issue extends Model
         "description",
         "attachments",
         "creator_id",
-        "assigned_to",
+        "assign_to",
         "priority",
         "type",
         "is_open",
@@ -25,7 +25,7 @@ class Issue extends Model
 
     protected $casts = [
         'creator_id' => 'integer',
-        'assigned_to' => 'integer',
+        'assign_to' => 'integer',
         'priority' => 'integer',
         'type' => 'integer',
         'is_open' => 'boolean',
