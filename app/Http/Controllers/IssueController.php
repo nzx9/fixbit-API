@@ -74,7 +74,7 @@ class IssueController extends Controller
                     'title' => 'required|max:30',
                     'description' => 'required|max:500',
                     'attachments' => 'file',
-                    'assign_to' => 'integer',
+                    'assign_to' => 'integer|null',
                     'priority'    => 'required|integer',
                     'type'        => 'required|integer',
                     'is_open'     => 'required|boolean'
@@ -203,7 +203,7 @@ class IssueController extends Controller
                     'title' => 'max:30',
                     'description' => 'max:500',
                     'attachments' => 'file',
-                    'assign_to'   => 'integer',
+                    'assign_to'   => 'integer|null',
                     'priority'    => 'integer',
                     'type'        => 'integer',
                     'is_open'     => 'boolean'
