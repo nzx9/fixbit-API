@@ -95,7 +95,7 @@ class ProjectController extends Controller
                 "name"        => "required|unique:projects|max:30",
                 "description" => "required|max:500",
                 "is_public"   => "required|boolean",
-                "team_id"     => "integer|null"
+                "team_id"     => "integer|nullable"
                 ]);
 
             if($validator->fails()){
@@ -228,7 +228,7 @@ class ProjectController extends Controller
                     "description" => "max:500",
                     "is_public" => "boolean",
                     "admin_id"  => "integer",
-                    "team_id"   => "integer|null"
+                    "team_id"   => "integer|nullable"
                 ]);
 
                 if($validator->fails()){

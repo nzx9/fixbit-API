@@ -74,7 +74,7 @@ class IssueController extends Controller
                     'title' => 'required|max:30',
                     'description' => 'required|max:500',
                     'attachments' => 'file',
-                    'assign_to' => 'integer|null',
+                    'assign_to' => 'integer|nullable',
                     'priority'    => 'required|integer',
                     'type'        => 'required|integer',
                     'is_open'     => 'required|boolean'
@@ -95,7 +95,7 @@ class IssueController extends Controller
                     "title"       => $request->title,
                     "description" => $request->description,
                     "attachments" => $request->attachments,
-                    "assign_to" => $request->assigned_to,
+                    "assign_to" => $request->assign_to,
                     "creator_id"  => $user->id,
                     "priority"    => $request->priority,
                     "type"        => $request->type,
@@ -203,7 +203,7 @@ class IssueController extends Controller
                     'title' => 'max:30',
                     'description' => 'max:500',
                     'attachments' => 'file',
-                    'assign_to'   => 'integer|null',
+                    'assign_to'   => 'integer|nullable',
                     'priority'    => 'integer',
                     'type'        => 'integer',
                     'is_open'     => 'boolean'
