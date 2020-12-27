@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Member;
 use App\Models\TeamUserSearch;
 
 class MemberController extends Controller
@@ -31,8 +32,8 @@ class MemberController extends Controller
         if(!is_null($user)){
             $t = Team::find($tid);
             if(!is_null($t)){
-                $team = new Team();
-                $data = $team->getInfoOfTeam($tid);
+                $member_cls = new Member();
+                $data = $member_cls->getInfoOfTeam($tid);
                 return response()->json([
                     "success" => true,
                     "type"    => "success",
@@ -70,7 +71,6 @@ class MemberController extends Controller
         if(!is_null($user)){
             $validator = Validator::make($request->all(), [
                 'uid'          => 'required|integer',
-                'is_leader'    => 'boolean',
                 'is_available' => 'boolean',
             ]);
 
@@ -89,40 +89,48 @@ class MemberController extends Controller
             if(!is_null($team_d) && ($team_d->leader_id === $user->id)){
                 $member = User::find($request->uid);
                 if(!is_null($member)){
-                    $member_data = array(
-                        "uid"          => $request->uid,
-                        "name"         => $member->username,
-                        "role"         => $request->role,
-                        "is_available" => $request->is_available,
-                        "is_leader"    => $request->is_leader,
-                        "created_at"   => $team_d->freshTimestamp(),
-                        "updated_at"   => $team_d->freshTimestamp()
-                    );
-                    $team = new Team();
-                    $inserted = $team->addToTeamTable($tid, $member_data);
-                    if($inserted){
-                        $tu_data = array(
-                            "tid"       => $tid,
-                            "uid"       => $request->uid,
+                    $member_cls = new Member();
+                    if(is_null($member_cls->getInfoOfTeamMember($tid, $request->uid))){
+                        $member_data = array(
+                            "uid"          => $request->uid,
+                            "name"         => $member->username,
+                            "role"         => $request->role,
+                            "is_available" => $request->is_available,
+                            "created_at"   => $team_d->freshTimestamp(),
+                            "updated_at"   => $team_d->freshTimestamp()
                         );
-                        $tu_search = TeamUserSearch::create($tu_data);
-                        return response()->json([
-                            "success" => true,
-                            "type"    => "success",
-                            "reason"  => null,
-                            "msg"     => "Member added to the team",
-                            "data"    => null
-                        ], $this->status_ok);
+                        $inserted = $member_cls->addToTeamTable($tid, $member_data);
+                        if($inserted){
+                            $tu_data = array(
+                                "tid"       => $tid,
+                                "uid"       => $request->uid,
+                            );
+                            $tu_search = TeamUserSearch::create($tu_data);
+                            return response()->json([
+                                "success" => true,
+                                "type"    => "success",
+                                "reason"  => null,
+                                "msg"     => "Member added to the team",
+                                "data"    => null
+                            ], $this->status_created);
+                        }else{
+                            return response()->json([
+                                "success" => false,
+                                "type"    => "error",
+                                "reason"  => "not inserted",
+                                "msg"     => "Member not added to the team",
+                                "data"    => null
+                            ], $this->status_badrequest);
+                        }
                     }else{
                         return response()->json([
                             "success" => false,
                             "type"    => "error",
                             "reason"  => "not inserted",
-                            "msg"     => "Member not added to the team",
+                            "msg"     => "Member already in the team",
                             "data"    => null
                         ], $this->status_badrequest);
                     }
-
                 }else{
                     return response()->json([
                         "success" => false,
@@ -149,34 +157,185 @@ class MemberController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  int $tid
+     * @param  int $uid
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $tid,int $uid)
     {
-        //
+        $user = Auth::user();
+        if(!is_null($user)){
+            $member_cls = new Member();
+            $member = $member_cls->getInfoOfTeamMember($tid, $uid);
+            if(!is_null($member)){
+                $user_info = User::find($member->uid);
+                if(!is_null($user_info)){
+                    $data = array(
+                        'membership' => $member,
+                        'info'       => $user_info
+                    );
+                    return response()->json([
+                        "success" => true,
+                        "type"    => "success",
+                        "reason"  => null,
+                        "msg"     => "Member data fetched successfully",
+                        "data"    => $data
+                    ], $this->status_ok);
+                }else{
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => "unknown",
+                        "msg"     => "Something went wrong",
+                        "data"    => null
+                    ], $this->status_badrequest);
+                }
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "notfound",
+                    "msg"     => "Member not found in the team",
+                    "data"    => null
+                ], $this->status_notfound);
+            }
+        }else{
+            return response()->json([
+                "success" => false,
+                "type"    => "error",
+                "reason"  => "unauthorized",
+                "msg"     => "Unauthorized",
+                "data"    => null
+            ], $this->status_unauthorized);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  int  $tid
+     * @param  int  $uid
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $tid, int $uid)
     {
-        //
+        $user = Auth::user();
+        if(!is_null($user)){
+            $validator = Validator::make($request->all(), [
+                'is_available' => 'boolean',
+                'role'         => 'string|nullable'
+            ]);
+
+            if($validator->fails()){
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "validation error",
+                    "msg"     => $validator->errors(),
+                    "data"    => null
+                ], $this->status_badrequest);
+            }
+
+            $team_d = Team::find($tid);
+            if(!is_null($team_d) && ($team_d->leader_id === $user->id)){
+                $member_cls = new Member();
+                $member_i = $member_cls->getInfoOfTeamMember($tid, $uid);
+                if(!is_null($member_i)){
+                    $request->request->add(['updated_at' => $member_cls->freshTimeStamp()]);
+                    $updated = $member_cls->updateMember($tid, $uid,
+                    $request->only([
+                        'is_available', 'role', 'updated_at'
+                        ])
+                    );
+                    if($updated){
+                        return response()->json([
+                            "success" => true,
+                            "type"    => "success",
+                            "reason"  => null,
+                            "msg"     => "Member updated successfully",
+                            "data"    => null
+                        ], $this->status_ok);
+                    }else{
+                        return response()->json([
+                            "success" => false,
+                            "type"    => "error",
+                            "reason"  => "unknown",
+                            "msg"     => "Somtehing went wrong, please contact support",
+                            "data"    => null
+                        ], $this->status_badrequest);
+                    }
+                }else{
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => "notfound",
+                        "msg"     => "Member not in the team",
+                        "data"    => null
+                    ], $this->status_notfound);
+                }
+            }
+        }
+
+        return response()->json([
+            "success" => false,
+            "type"    => "error",
+            "reason"  => "unauthorized",
+            "msg"     => "Unauthorized",
+            "data"    => null
+        ], $this->status_unauthorized);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  int  $tid
+     * @param  int  $mid
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $tid,int $uid)
     {
-        //
+        $user = Auth::user();
+        if(!is_null($user)){
+            $team_d = Team::find($tid);
+            if((!is_null($team_d) && ($team_d->leader_id === $user->id)) || ($user->id === $uid)){
+                if($team_d->leader_id === $uid){
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => "forbidden",
+                        "msg"     => "Leader can't delete own accout. Tansfer leadership before delete",
+                        "data"    => null
+                    ], $this->status_forbidden);
+                }else{
+                    $member_cls = new Member();
+                    if($member_cls->removeTeamMember($tid, $uid)){
+                        $tus = TeamUserSearch::where('tid', $tid)->where('uid', $uid)->delete();
+                        return response()->json([
+                            "success" => true,
+                            "type"    => "success",
+                            "reason"  => null,
+                            "msg"     => "Member deleted successfully",
+                            "data"    => null
+                        ], $this->status_ok);
+                    }else{
+                        return response()->json([
+                            "success" => false,
+                            "type"    => "error",
+                            "reason"  => "notfound",
+                            "msg"     => "Member not in the team",
+                            "data"    => null
+                        ], $this->status_notfound);
+                    }
+                }
+            }
+        }
+        return response()->json([
+            "success" => false,
+            "type"    => "error",
+            "reason"  => "unauthorized",
+            "msg"     => "Unauthorized",
+            "data"    => null
+        ], $this->status_unauthorized);
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\Team;
+use App\Models\Member;
 use App\Models\TeamUserSearch;
 
 class TeamController extends Controller
@@ -108,13 +109,14 @@ class TeamController extends Controller
             $data = array(
                 'uid'          => $user->id,
                 'name'         => $user->username,
-                'is_leader'    => true,
                 'is_available' => true,
                 'role'         => 'admin',
                 'created_at' => $team_cls->freshTimestamp(),
                 'updated_at' => $team_cls->freshTimestamp()
             );
-            $team_cls->addToTeamTable($team->id, $data);
+
+            $member_cls = new Member();
+            $member_cls->addToTeamTable($team->id, $data);
 
             $tu_data = array(
                 "tid"       => $team->id,
