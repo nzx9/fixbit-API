@@ -29,7 +29,7 @@ class ProjectUserSearch extends Model
      * @return array
      */
     public function projectIdsUserCanAccess(int $pid,int $uid){
-        $pu = $this->where('pid', $pid)->where('is_public', true)->orWhere('pid', $pid)->where('uid', $uid)->get();
+        $pu = $this->where('pid', $pid)->where('is_public', true)->orWhere('pid', $pid)->where('uid', $uid)->distinct()->get('pid');
         return $pu;
     }
 

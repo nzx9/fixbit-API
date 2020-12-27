@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\ProjectUserSearch;
+use App\Models\Member;
 
 class ProjectController extends Controller
 {
@@ -30,17 +31,19 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         if(!is_null($user)){
-            $project_ids = ProjectUserSearch::where('uid', $user->id)->orWhere('is_public', true)->get();
+            $project_ids = ProjectUserSearch::where('uid', $user->id)->orWhere('is_public', true)->distinct()->get('pid');
             if(count($project_ids) >= 0){
                 $projects = [];
                 $data = [];
                 foreach($project_ids as $project_id){
-                    $projects[] = Project::find($project_id->pid);
+                    $projects[] = Project::find($project_id);
                 }
+
                 foreach($projects as $project){
                     $team_data = null;
                     $member_data = null;
-                    if($project->team_id !== null){
+                    $project = $project[0];
+                    if(!is_null($project->team_id)){
                         $team_data = Team::find($project->team_id);
                         $member_data = DB::table("team_".$project->team_id)->get();
                     }
@@ -118,6 +121,22 @@ class ProjectController extends Controller
             );
 
             $project = Project::create($project_data);
+            $member_cls = new Member();
+            if(!is_null($request->team_id)){
+                $members = $member_cls->getTeamMembers($project->team_id);
+                foreach($members as $member){
+                    $pu_data = array(
+                        'pid'        => $project->id,
+                        'uid'        => $member->uid,
+                        'is_public'  => $project->is_public,
+                        'created_at' => $member_cls->freshTimestamp(),
+                        'updated_at' => $member_cls->freshTimestamp(),
+                    );
+                    if($member->uid !== $project->admin_id){
+                        ProjectUserSearch::insertOrIgnore($pu_data);
+                    }
+                }
+            }
 
             if(is_null($project)){
                 return response()->json([
@@ -221,6 +240,7 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         $project= Project::find($id);
+        $old_team_id = $project->team_id;
         if(!is_null($project)){
             if(!is_null($user) && ($project->admin_id === $user->id)){
                 $validator = Validator::make($request->all(), [
@@ -241,6 +261,41 @@ class ProjectController extends Controller
                 }
 
                 if(!is_null($project) && $project->update($request->all()) === true){
+                    $member_cls = new Member();
+                    if(!is_null($request->team_id)){
+                        if(!is_null($old_team_id) && $old_team_id !== $project->team_id){
+                            $old_members = $member_cls->getTeamMembers($old_team_id);
+                            foreach($old_members as $old_member){
+                                if($old_member->uid !== $project->admin_id){
+                                    ProjectUserSearch::where('pid', $id)->where('uid', $old_member->uid)->delete();
+                                }
+                            }
+                        }
+
+                        $members = $member_cls->getTeamMembers($project->team_id);
+                        foreach($members as $member){
+                            $pu_data = array(
+                                'pid'        => $project->id,
+                                'uid'        => $member->uid,
+                                'is_public'  => $project->is_public,
+                                'created_at' => $member_cls->freshTimestamp(),
+                                'updated_at' => $member_cls->freshTimestamp(),
+                            );
+                            ProjectUserSearch::insertOrIgnore($pu_data);
+                        }
+                    }else{
+                        if(!is_null($old_team_id) && $old_team_id !== $project->team_id){
+                            $old_members = $member_cls->getTeamMembers($old_team_id);
+                            foreach($old_members as $old_member){
+                                if($old_member->uid !== $project->admin_id){
+                                    ProjectUserSearch::where('pid', $id)->where('uid', $old_member->uid)->delete();
+                                }
+                            }
+                        }
+                    }
+                    if(!is_null($project->is_public)){
+                        ProjectUserSearch::where('pid', $project->id)->update(['is_public' => $project->is_public]);
+                    }
                     return response()->json([
                         "success" => true,
                         "type"    => "success",

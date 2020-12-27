@@ -9,6 +9,9 @@ use App\Models\Team;
 use App\Models\User;
 use App\Models\Member;
 use App\Models\TeamUserSearch;
+use App\Models\Project;
+use App\Models\ProjectUserSearch;
+
 
 class MemberController extends Controller
 {
@@ -71,7 +74,7 @@ class MemberController extends Controller
         if(!is_null($user)){
             $validator = Validator::make($request->all(), [
                 'uid'          => 'required|integer',
-                'is_available' => 'boolean',
+                'is_available' => 'boolean|nullable',
             ]);
 
 
@@ -106,6 +109,19 @@ class MemberController extends Controller
                                 "uid"       => $request->uid,
                             );
                             $tu_search = TeamUserSearch::create($tu_data);
+                            $projects_team_in_use = Project::where('team_id', $tid)->distinct()->get(['id', 'is_public']);
+
+                            foreach($projects_team_in_use as $p){
+                                $pu_data = array(
+                                    'uid'       => $request->uid,
+                                    'pid'       => $p->id,
+                                    'is_public' => $p->is_public,
+                                    'created_at' => $member_cls->freshTimeStamp(),
+                                    'updated_at' => $member_cls->freshTimeStamp(),
+
+                                );
+                                ProjectUserSearch::insertOrIgnore($pu_data);
+                            }
                             return response()->json([
                                 "success" => true,
                                 "type"    => "success",
@@ -311,6 +327,12 @@ class MemberController extends Controller
                     $member_cls = new Member();
                     if($member_cls->removeTeamMember($tid, $uid)){
                         $tus = TeamUserSearch::where('tid', $tid)->where('uid', $uid)->delete();
+                        $projects_team_member_in = Project::where('team_id', $tid)->distinct()->get('id');
+
+                        foreach($projects_team_member_in as $p){
+                            ProjectUserSearch::where('pid', $p->id)->where('uid', $uid)->delete();
+                        }
+
                         return response()->json([
                             "success" => true,
                             "type"    => "success",

@@ -104,13 +104,24 @@ class UserController extends Controller
                 "token"   => $token
             ], $this->status_ok);
         } else {
-            return response()->json([
-                "success" => false,
-                "type"    => "error",
-                "reason"  => "invalid",
-                "msg"     => "Invalid login credientials",
-                "data"    => null
-            ], $this->status_unauthorized);
+            $email = User::where('email', $request->email)->get();
+            if(count($email) > 0){
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "invalid",
+                    "msg"     => "Invalid login credientials",
+                    "data"    => null
+                ], $this->status_unauthorized);
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "notfound",
+                    "msg"     => "Email not registered!. please register.",
+                    "data"    => null
+                ], $this->status_ok);
+            }
         }
     }
 

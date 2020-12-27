@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Team;
 use App\Models\Member;
 use App\Models\TeamUserSearch;
+use App\Models\Project;
 
 class TeamController extends Controller
 {
@@ -255,16 +256,35 @@ class TeamController extends Controller
         $user = Auth::user();
         if(!is_null($user)){
             $team = Team::find($id);
-            if(!is_null($team) && ($team->leader_id === $user->id) && ($team->delete() === true)){
-                $tus = TeamUserSearch::where('tid', $id)->delete();
-                $team_cls = new Team();
-                $team_cls->dropTeamTable($id);
-                return response()->json([
-                    "success" => true,
-                    "type"    => "success",
-                    "reason"  => null,
-                    "msg"     => "Team deleted successfully",
-                    "data"    => null], $this->status_ok);
+            if(!is_null($team) && ($team->leader_id === $user->id)){
+                $projects_use_team = Project::where('team_id', $id)->distinct()->get('id');
+                if(count($projects_use_team) === 0){
+                    if($team->delete() === true){
+                        $tus = TeamUserSearch::where('tid', $id)->delete();
+                        $team_cls = new Team();
+                        $team_cls->dropTeamTable($id);
+                        return response()->json([
+                            "success" => true,
+                            "type"    => "success",
+                            "reason"  => null,
+                            "msg"     => "Team deleted successfully",
+                            "data"    => null], $this->status_ok);
+                    }else{
+                        return response()->json([
+                            "success" => false,
+                            "type"    => "error",
+                            "reason"  => null,
+                            "msg"     => "Something went wrong",
+                            "data"    => null], $this->status_badrequest);
+                    }
+                }else{
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => null,
+                        "msg"     => "This team has assign to ". count($projects_use_team). " project(s). Unassign team from all projects before delete.",
+                        "data"    => null], $this->status_ok);
+                }
             }else{
                 return response()->json([
                     "success" => false,

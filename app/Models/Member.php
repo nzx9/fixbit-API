@@ -28,8 +28,7 @@ class Member extends Model
      * get all information of members in given team table
      *
      * @param int tid
-     * @param array data
-     * @return boolean
+     * @return array data
      */
     public function getInfoOfTeam(int $tid)
     {
@@ -52,8 +51,7 @@ class Member extends Model
      *
      * @param int tid
      * @param int uid
-     * @param array data
-     * @return boolean
+     * @return array data
      */
     public function getInfoOfTeamMember(int $tid, int $uid)
     {
@@ -91,6 +89,38 @@ class Member extends Model
     public function removeTeamMember(int $tid, int $uid)
     {
         return DB::table('team_'.$tid)->where('uid', $uid)->delete();
+    }
+
+    /**
+     * get team members of the team
+     *
+     * @param int tid
+     * @return array data
+     */
+    public function getTeamMembers(int $tid)
+    {
+        $data = null;
+        $members = DB::table('team_'.$tid)->get();
+        if(!is_null($members)){
+            $data = $members;
+        }
+        return $data;
+    }
+
+    /**
+     * Add team member to pu search table
+     *
+     * @param int tid
+     * @param int uid
+     * @param array data
+     * @return void
+     */
+    public function insertMemberToPUS(int $tid, int $uid,array $data)
+    {
+        $found = DB::table('team_'.$tid)->where('uid', $uid)->get();
+        if(count($found) === 0){
+            ProjectUserSearch::create($data);
+        }
     }
 
 }
