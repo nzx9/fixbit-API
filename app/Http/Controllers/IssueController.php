@@ -196,8 +196,8 @@ class IssueController extends Controller
     {
         $user = Auth::user();
         if(!is_null($user)){
-            $pu = new ProjectUserSearch();
-            $user_has_access = $pu->isUserHasAccessToProject($pid, $user->id);
+            $issue = new Issue();
+            $user_has_access = $issue->isUserHasAccessToIssue($pid, $user->id, $iid);
             if($user_has_access){
                 $validator = Validator::make($request->all(), [
                     'title' => 'max:30',
@@ -218,7 +218,6 @@ class IssueController extends Controller
                         "data"    => null], $this->status_badrequest);
                 }
 
-                $issue = new Issue();
                 if(count($request->input()) === 1 && $request->is_open !== null){
                     $updated = $issue->updateIssueByColumn($pid, $iid, 'is_open', $request->is_open);
                     if($updated){
@@ -234,7 +233,7 @@ class IssueController extends Controller
                             "success" => false,
                             "type"    => "error",
                             "reason"  => "unknown",
-                            "msg"     => "Somtehing went wrong, please contact support",
+                            "msg"     => "Something went wrong, please contact support",
                             "data"    => null], $this->status_badrequest);
                     }
                 }else{
@@ -269,10 +268,10 @@ class IssueController extends Controller
                 return response()->json([
                     "success" => false,
                     "type"    => "error",
-                    "reason"  => "notfound",
-                    "msg"     => "Issue not found",
+                    "reason"  => "forbidden",
+                    "msg"     => "Not have access to do the operation. Only creator, team members and administrator has access to do this",
                     "data"    => null
-                ], $this->status_notfound);
+                ], $this->status_forbidden);
             }
         }
         return response()->json([
@@ -295,10 +294,9 @@ class IssueController extends Controller
     {
         $user = Auth::user();
         if(!is_null($user)){
-            $pu = new ProjectUserSearch();
-            $user_has_access = $pu->isUserHasAccessToProject($pid, $user->id);
+            $issue = new Issue();
+            $user_has_access = $issue->isUserHasAccessToIssue($pid, $user->id, $iid);
             if($user_has_access){
-                $issue = new Issue();
                 $deleted = $issue->deleteIssue($pid, $iid);
                 if($deleted){
                     return response()->json([
@@ -313,7 +311,7 @@ class IssueController extends Controller
                         "success" => false,
                         "type"    => "error",
                         "reason"  => "unknown",
-                        "msg"     => "Somtehing went wrong, please contact support",
+                        "msg"     => "Something went wrong, please contact support",
                         "data"    => null
                     ], $this->status_badrequest);
                 }
@@ -321,10 +319,10 @@ class IssueController extends Controller
                 return response()->json([
                     "success" => false,
                     "type"    => "error",
-                    "reason"  => "notfound",
-                    "msg"     => "Issue not found",
+                    "reason"  => "forbidden",
+                    "msg"     => "Not have access to do the operation. Only creator, team members and administrator has access to do this.",
                     "data"    => null
-                ], $this->status_notfound);
+                ], $this->status_forbidden);
             }
         }
         return response()->json([

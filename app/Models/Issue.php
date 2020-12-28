@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProjectUserSearch;
+use App\Models\Member;
+use App\Models\Project;
 
 class Issue extends Model
 {
@@ -108,6 +111,33 @@ class Issue extends Model
         }else{
             return false;
         }
+    }
+
+    /**
+     * Check user has access to the issue
+     *
+     * @param int pid
+     * @param int uid
+     * @param int iid
+     * @return boolean
+     */
+    public function isUserHasAccessToIssue(int $pid,int $uid,int $iid){
+        $pu_cls = new ProjectUserSearch();
+        $has_access = $pu_cls->isUserHasAccessToProject($pid, $uid);
+        if($has_access){
+            $project_info = Project::find($pid);
+            if($project_info->admin_id === $uid) return true;
+
+            $issue_data = $this->getIssue($pid, $iid);
+            if($issue_data[0]->creator_id === $uid) return true;
+
+            if(!is_null($project_info->team_id)){
+                $member_cls = new Member();
+                $member = $member_cls->getInfoOfTeamMember($project_info->team_id, $uid);
+                if(!is_null($member)) return true;
+            }
+        }
+        return false;
     }
 
     /**
