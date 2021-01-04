@@ -16,7 +16,6 @@ class CreateTeamsTable extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->string('name')->length(20)->unique();
-            $table->foreign('name')->references('username')->on('users')->onUpdate('cascade')->onDelete('cascade');
             $table->string('description')->length(500);
             $table->bigInteger('leader_id')->unsigned();
             $table->foreign('leader_id')->references('id')->on('users');

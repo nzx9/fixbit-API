@@ -44,6 +44,7 @@ class Team extends Model
         Schema::create('team_' . $tid, function (Blueprint $table) {
             $table->bigInteger('uid')->primary();
             $table->string('name')->length(30);
+            $table->foreign('name')->references('username')->on('users')->onUpdate('cascade')->onDelete('cascade');
             $table->tinyInteger('is_available')->default(true)->nullable();
             $table->string('role')->length('20')->nullable();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
