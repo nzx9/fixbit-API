@@ -23,6 +23,7 @@ Route::post("users/login", [UserController::class, "loginUser"]);
 
 Route::middleware("auth:api")->group(function () {
     Route::get("users/user", [UserController::class, "userDetails"]);
+    Route::get("users/user/{uid}", [UserController::class, "specificUserDetails"]);
     Route::resource("projects", ProjectController::class);
     Route::resource("projects/{pid}/issues", IssueController::class);
     Route::resource("teams", TeamController::class);

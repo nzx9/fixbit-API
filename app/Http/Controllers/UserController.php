@@ -146,4 +146,27 @@ class UserController extends Controller
             ], $this->status_notfound);
         }
     }
+
+    public function specificUserDetails(int $uid)
+    {
+        $user = Auth::user();
+        if (!is_null($user)) {
+            $user_data = User::find($uid);
+            return response()->json([
+                "success" => !is_null($user_data) ? true: false,
+                "type"    => !is_null($user_data) ? "success": "error",
+                "reason"  => !is_null($user_data) ? null: "notfound",
+                "msg"     => !is_null($user_data) ? "User Found": "User Not Found",
+                "data"    =>  $user_data
+            ], !is_null($user_data) ? $this->status_ok : $this->status_notfound);
+        } else {
+            return response()->json([
+                "success" => false,
+                "type"    => "error",
+                "reason"  => "unauthorized",
+                "msg"     => "unauthorized",
+                "data"    =>  null
+            ], $this->status_unauthorized);
+        }
+    }
 }
