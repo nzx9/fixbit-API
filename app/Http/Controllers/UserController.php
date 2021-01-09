@@ -27,7 +27,7 @@ class UserController extends Controller
     public function registerUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'username'   => 'required',
+            'username'   => 'required|max:25',
             'fullname'   => 'required',
             'email'      => 'required|unique:users|email',
             'password'   => 'required|min:8',
@@ -125,6 +125,11 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Get details current user.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function userDetails()
     {
         $user = Auth::user();
@@ -147,6 +152,12 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Get details of specific user.
+     *
+     * @param  int  $uid
+     * @return \Illuminate\Http\Response
+     */
     public function specificUserDetails(int $uid)
     {
         $user = Auth::user();
@@ -160,6 +171,111 @@ class UserController extends Controller
                 "data"    =>  $user_data
             ], !is_null($user_data) ? $this->status_ok : $this->status_notfound);
         } else {
+            return response()->json([
+                "success" => false,
+                "type"    => "error",
+                "reason"  => "unauthorized",
+                "msg"     => "unauthorized",
+                "data"    =>  null
+            ], $this->status_unauthorized);
+        }
+    }
+
+    /**
+     * Update user details.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $uid
+     * @return \Illuminate\Http\Response
+     */
+    public function updateUserDetails(Request $request){
+        $user = Auth::user();
+        if(!is_null($user)){
+            $validator = Validator::make($request->all(), [
+                "username"     => "string|max:25",
+                "fullname"     => "string",
+                "email"        => "email",
+                "old_password" => "min:8",
+                "password"     => "min:8",
+                "c_password"   => "same:password",
+                "twitter"      => "string|max:50",
+                "linkedIn"     => "string|max:50",
+                "github"       => "string|max:50",
+                ]);
+
+            if($validator->fails()){
+                return response()->json([
+                    "success" => false,
+                    "type"    => "error",
+                    "reason"  => "validation error",
+                    "msg"     => $validator->errors(),
+                    "data"    => null
+                ], $this->status_badrequest);
+            }
+
+            $updated_data = null;
+
+            if(!is_null($request->password) || !is_null($request->email)){
+                if(!is_null($request->password) &&
+                    !is_null($request->old_password)
+                ){
+                    if( Auth::guard('web')->attempt(['email' => $user->email, 'password' => $request->old_password])){
+                        $inputs = $request->only(['username', 'fullname', 'password', 'twitter', 'linkedIn', 'github']);
+                        $inputs['password'] = bcrypt($inputs['password']);
+                        if(User::where('id', $user->id)->update($inputs)){
+                            $updated_data = User::find($user->id);
+                        }
+                    }else{
+                        return response()->json([
+                            "success" => false,
+                            "type"    => "error",
+                            "reason"  => "notmatch error",
+                            "msg"     => "Old password not matched",
+                            "data"    => null
+                        ], $this->status_forbidden);
+                    }
+                }
+                if(!is_null($request->email) && $request->email !== $user->email){
+                    if(0 === count(User::where('email', $request->email)->get())){
+                        if(User::where('id', $user->id)->update($request->only(['username', 'fullname', 'email', 'twitter', 'linkedIn','github']))){
+                            $updated_data = User::find($user->id);
+                        }
+                    }else{
+                        return response()->json([
+                            "success" => false,
+                            "type"    => "error",
+                            "reason"  => "duplicate error",
+                            "msg"     => "New Email already in use",
+                            "data"    => null
+                        ], $this->status_badrequest);
+                    }
+                }
+
+            }else{
+                if(User::where('id', $user->id)->update($request->only(['username','fullname', 'twitter', 'linkedIn', 'github']))){
+                    $updated_data = User::find($user->id);
+                }
+            }
+            if(!is_null($updated_data)){
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "User details updated successfully",
+                    "data"    => $updated_data
+                ], $this->status_ok);
+
+            }else{
+                return response()->json([
+                    "success" => false,
+                    "type"    => "warning",
+                    "reason"  => "badrequest",
+                    "msg"     => "User details not updated",
+                    "data"    => null
+                ], $this->status_badrequest);
+            }
+
+        }else{
             return response()->json([
                 "success" => false,
                 "type"    => "error",
