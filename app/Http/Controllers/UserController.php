@@ -198,9 +198,9 @@ class UserController extends Controller
                 "old_password" => "min:8",
                 "password"     => "min:8",
                 "c_password"   => "same:password",
-                "twitter"      => "string|max:50",
-                "linkedIn"     => "string|max:50",
-                "github"       => "string|max:50",
+                "twitter"      => "string|max:50|nullable",
+                "linkedIn"     => "string|max:50|nullable",
+                "github"       => "string|max:50|nullable",
                 ]);
 
             if($validator->fails()){
