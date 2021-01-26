@@ -7,7 +7,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\MemberController;
-
+use App\Http\Controllers\StatController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -29,5 +29,6 @@ Route::middleware("auth:api")->group(function () {
     Route::resource("projects/{pid}/issues", IssueController::class);
     Route::resource("teams", TeamController::class);
     Route::resource("teams/{tid}/members", MemberController::class);
+    Route::get("stats", [StatController::class, "index"]);
 });
 
