@@ -72,7 +72,7 @@ class IssueController extends Controller
             if($user_has_access){
                 $validator = Validator::make($request->all(), [
                     'title' => 'required|max:30',
-                    'description' => 'required|max:500',
+                    'description' => 'required|max:5000',
                     'attachments' => 'file',
                     'assign_to' => 'integer|nullable',
                     'priority'    => 'required|integer',
