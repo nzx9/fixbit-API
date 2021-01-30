@@ -47,7 +47,7 @@ class Project extends Model
         Schema::create('project_' . $pid, function (Blueprint $table) {
             $table->id();
             $table->string('title')->length(30);
-            $table->string('description')->length(500);
+            $table->string('description')->length(5000);
             $table->json('attachments')->nullable();
             $table->bigInteger('creator_id')->index();
             $table->bigInteger('assign_to')->nullable()->index();
