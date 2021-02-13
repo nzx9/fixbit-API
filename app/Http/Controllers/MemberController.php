@@ -327,10 +327,11 @@ class MemberController extends Controller
                     $member_cls = new Member();
                     if($member_cls->removeTeamMember($tid, $uid)){
                         $tus = TeamUserSearch::where('tid', $tid)->where('uid', $uid)->delete();
-                        $projects_team_member_in = Project::where('team_id', $tid)->distinct()->get('id');
+                        $projects_team_member_in = Project::where('team_id', $tid)->where('admin_id', '!=', $uid)->distinct()->get('id');
 
                         foreach($projects_team_member_in as $p){
                             ProjectUserSearch::where('pid', $p->id)->where('uid', $uid)->delete();
+
                         }
 
                         return response()->json([
