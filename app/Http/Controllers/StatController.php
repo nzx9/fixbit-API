@@ -78,7 +78,7 @@ class statController extends Controller
                 foreach($team_ids as $team_id){
                     $team = Team::find($team_id);
                     $team = $team[0];
-                    $teams_in = array(
+                    $teams_in[] = array(
                         'id'        => $team->id,
                         'name'      => $team->name,
                         'is_active' => $team->is_active,
