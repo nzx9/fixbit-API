@@ -31,22 +31,27 @@ class statController extends Controller
         if(!is_null($user)){
             $project_ids = ProjectUserSearch::where('uid', $user->id)->get('pid');
             $team_ids = TeamUserSearch::where('uid', $user->id)->get('tid');
-            $projects_admin = [];
-            $teams_admin = [];
+            $projects_in = [];
+            $teams_in = [];
             $issues_open = [];
             $projects_in_c = count($project_ids);
             $teams_in_c = count($team_ids);
             $issues_total_c = 0;
             $issues_open_c = 0;
+            $teams_leader_c = 0;
+            $projects_admin_c = 0;
             if($projects_in_c > 0){
                 foreach($project_ids as $project_id){
                     $issues_tmp = [];
                     $project = Project::find($project_id);
                     $project = $project[0];
-                    if($project->admin_id === $user->id) $projects_admin[] = array(
+                    $projects_in[] = array(
                         'id'        => $project->id,
                         'name'      => $project->name,
-                        'is_public' => $project->is_public);;
+                        'is_admin'  => ($project->admin_id === $user->id),
+                        'is_public' => $project->is_public
+                    );
+                    if($project->admin_id === $user->id) $projects_admin_c++;
                     $issues = DB::table('project_'.$project->id)->get();
                     foreach($issues as $issue){
                         if($issue->assign_to === $user->id){
@@ -61,19 +66,25 @@ class statController extends Controller
                             }
                         }
                     }
-                    $issues_open[] = array('pid' => $project->id, 'p_name' => $project->name, 'issues' => $issues_tmp);
+                    if(count($issues_tmp) > 0)
+                        $issues_open[] = array(
+                            'pid' => $project->id,
+                            'p_name' => $project->name,
+                            'issues' => $issues_tmp
+                        );
                 }
             }
             if(count($team_ids) > 0){
                 foreach($team_ids as $team_id){
                     $team = Team::find($team_id);
                     $team = $team[0];
-                    $team_d = array(
+                    $teams_in = array(
                         'id'        => $team->id,
                         'name'      => $team->name,
                         'is_active' => $team->is_active,
+                        'is_leader' => ($team->leader_id === $user->id)
                     );
-                    if($team->leader_id === $user->id) $teams_admin[] = $team_d;
+                    if($team->leader_id === $user->id) $teams_leader_c++;
                 }
             }
             return response()->json([
@@ -82,13 +93,15 @@ class statController extends Controller
                 "reason"  => null,
                 "msg"     => "Stats fetched successfully",
                 "data"    => array(
-                    'projects_admin'    => $projects_admin,
-                    'teams_admin'       => $teams_admin,
-                    'open_issues'       => $issues_open,
-                    'projects_in_count' => $projects_in_c,
-                    'teams_in_count'    => $teams_in_c,
-                    'open_issue_count'  => $issues_open_c,
-                    'total_issue_count' => $issues_total_c
+                    'projects_in'          => $projects_in,
+                    'projects_in_count'    => $projects_in_c,
+                    'projects_admin_count' => $projects_admin_c,
+                    'teams_in'             => $teams_in,
+                    'teams_in_count'       => $teams_in_c,
+                    'teams_leader_count'   => $teams_leader_c,
+                    'open_issues'          => $issues_open,
+                    'open_issue_count'     => $issues_open_c,
+                    'total_issue_count'    => $issues_total_c,
                     )],
                     $this->status_ok);
         }else{
