@@ -156,6 +156,8 @@ class IssueController extends Controller
             if($user_has_access){
                 $issue = new Issue();
                 $issue_data = $issue->getIssue($pid, $iid);
+                if(!is_null($issue_data[0]->comments))
+                    $issue_data[0]->comments = \json_decode($issue_data[0]->comments);
                 if(count($issue_data) === 1){
                     return response()->json([
                         "success" => true,
@@ -197,6 +199,28 @@ class IssueController extends Controller
         $user = Auth::user();
         if(!is_null($user)){
             $issue = new Issue();
+            if(count($request->input()) === 1 && $request->comments !== null){
+                // $issue->updateIssueByColumn($pid, $iid, "comments", $request->comments);
+                // $issue->updateIssueByColumn($pid, $iid, "updated_at", $issue->freshTimeStamp());
+                $updated = $issue->updateCommentsColumn($pid, $iid, $request->comments, $issue->freshTimeStamp());
+                if($updated) {
+                    return response()->json([
+                        "success" => true,
+                        "type"    => "success",
+                        "reason"  => null,
+                        "msg"     => "Comment created",
+                        "data"    => null
+                    ], $this->status_ok);
+                }else{
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => null,
+                        "msg"     => "Comment not created",
+                        "data"    => null
+                    ], $this->status_badrequest);
+                }
+            }
             $user_has_access = $issue->isUserHasAccessToIssue($pid, $user->id, $iid);
             if($user_has_access){
                 $validator = Validator::make($request->all(), [
@@ -219,6 +243,7 @@ class IssueController extends Controller
                 }
 
                 if(count($request->input()) === 1 && $request->is_open !== null){
+                    $issue->updateIssueByColumn($pid, $iid, "updated_at", $issue->freshTimeStamp());
                     $updated = $issue->updateIssueByColumn($pid, $iid, 'is_open', $request->is_open);
                     if($updated){
                         return response()->json([
@@ -237,12 +262,14 @@ class IssueController extends Controller
                             "data"    => null], $this->status_badrequest);
                     }
                 }else{
+                    if(!is_null($request->comments)){
+                    }
                     $request->request->add(['updated_at' => $issue->freshTimeStamp()]);
                     $updated = $issue->updateIssue($pid, $iid,
                     $request->only([
                         'title','description', 'is_open',
                         'priority', 'type', 'assign_to', 'attachments',
-                        'comments', 'updated_at'
+                        'updated_at'
                         ])
                     );
 

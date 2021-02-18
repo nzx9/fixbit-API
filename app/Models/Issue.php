@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ProjectUserSearch;
 use App\Models\Member;
 use App\Models\Project;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 class Issue extends Model
 {
@@ -32,6 +33,7 @@ class Issue extends Model
         'priority' => 'integer',
         'type' => 'integer',
         'is_open' => 'boolean',
+        'comments' => AsArrayObject::class
     ];
 
     /**
@@ -104,6 +106,31 @@ class Issue extends Model
     public function updateIssueByColumn(int $pid,int $iid,string $column, $value){
         $updated = DB::table('project_'.$pid)->where('id', $iid)->update([
             $column => $value
+        ]);
+
+        if(!is_null($updated)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    /**
+     * Update issue comments column
+     *
+     * @param int pid
+     * @param int iid
+     * @param array comments
+     * @return boolean
+     */
+    public function updateCommentsColumn(int $pid,int $iid, array $comment, $time){
+        $comments = DB::table('project_'.$pid)->where('id', $iid)->get("comments");
+        $value = [];
+        if(!is_null($value)) $value = json_decode($comments[0]->comments);
+        $value[] = $comment;
+        $updated = DB::table('project_'.$pid)->where('id', $iid)->update([
+            'comments' => $value,
+            'updated_at' => $time,
         ]);
 
         if(!is_null($updated)){
