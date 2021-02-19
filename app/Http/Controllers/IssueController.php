@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Issue;
 use App\Models\ProjectUserSearch;
+use App\Events\CommentNotifyEvent;
 
 class IssueController extends Controller
 {
@@ -200,10 +201,10 @@ class IssueController extends Controller
         if(!is_null($user)){
             $issue = new Issue();
             if(count($request->input()) === 1 && $request->comments !== null){
-                // $issue->updateIssueByColumn($pid, $iid, "comments", $request->comments);
-                // $issue->updateIssueByColumn($pid, $iid, "updated_at", $issue->freshTimeStamp());
                 $updated = $issue->updateCommentsColumn($pid, $iid, $request->comments, $issue->freshTimeStamp());
                 if($updated) {
+                    $issue_data = $issue->getIssue($pid, $iid);
+                    event(new CommentNotifyEvent($issue_data[0]->assign_to, $request->comments, $pid, $iid));
                     return response()->json([
                         "success" => true,
                         "type"    => "success",
