@@ -21,7 +21,7 @@ class CommentNotifyEvent implements ShouldBroadcast
    */
   public function __construct(int $assigneeId,array $comment,int $pid, int $iid)
   {
-      $this->assigneeId = $assigneeId;
+      $this->assigneeId = is_null($assigneeId) ? 0 : $assigneeId;
       $this->pid = $pid;
       $this->iid = $iid;
       $this->comment = $comment;
