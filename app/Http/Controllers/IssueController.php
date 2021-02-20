@@ -204,7 +204,7 @@ class IssueController extends Controller
                 $updated = $issue->updateCommentsColumn($pid, $iid, $request->comments, $issue->freshTimeStamp());
                 if($updated) {
                     $issue_data = $issue->getIssue($pid, $iid);
-                    event(new CommentNotifyEvent($issue_data[0]->assign_to, $request->comments, $pid, $iid));
+                    event(new CommentNotifyEvent(is_null($issue_data[0]->assign_to) ? 0 : $issue_data[0]->assign_to, $request->comments, $pid, $iid));
                     return response()->json([
                         "success" => true,
                         "type"    => "success",

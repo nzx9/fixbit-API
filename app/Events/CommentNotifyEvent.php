@@ -21,22 +21,27 @@ class CommentNotifyEvent implements ShouldBroadcast
    */
   public function __construct(int $assigneeId,array $comment,int $pid, int $iid)
   {
-      $this->assigneeId = is_null($assigneeId) ? 0 : $assigneeId;
+      $this->assigneeId = $assigneeId;
       $this->pid = $pid;
       $this->iid = $iid;
       $this->comment = $comment;
   }
 
-  /**
-   * Get the channels the event should broadcast on.
-   *
-   * @return Channel|array
-   */
-  public function broadcastOn()
-  {
-      return ['comment.'.$this->assigneeId];
-  }
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return Channel|array
+     */
+    public function broadcastOn()
+    {
+        return ['comment.'.$this->assigneeId];
+    }
 
+    /**
+     * Get the event name to broadcast as.
+     *
+     * @return string
+     */
     public function broadcastAs() {
         return 'comment-created';
     }
