@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use App\Models\Issue;
 use App\Models\ProjectUserSearch;
+use App\Models\Project;
+use App\Models\Team;
+use App\Models\User;
 use App\Events\CommentNotifyEvent;
 
 class IssueController extends Controller
@@ -160,12 +164,26 @@ class IssueController extends Controller
                 if(!is_null($issue_data[0]->comments))
                     $issue_data[0]->comments = \json_decode($issue_data[0]->comments);
                 if(count($issue_data) === 1){
+                    $project = Project::find($pid);
+                    $team_data = null;
+                    $member_data = null;
+                    if($project->team_id !== null) {
+                        $team_data = Team::find($project->team_id);
+                        $member_data = DB::table("team_".$project->team_id)->get(['uid', 'name']);
+                    }
+                    $admin = User::find($project->admin_id)->only(['id', 'username']);
+                    $data = array(
+                        'issue' => $issue_data[0],
+                        'team' => array(
+                            'info' => $team_data,
+                            'members' => $member_data
+                        ), 'admin' => $admin);
                     return response()->json([
                         "success" => true,
                         "type"    => "success",
                         "reason"  => null,
                         "msg"     => "Issue data fetched successfully",
-                        "data"    => $issue_data[0]
+                        "data"    => $data
                     ], $this->status_created);
                 }
             }
