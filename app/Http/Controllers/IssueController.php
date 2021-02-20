@@ -184,7 +184,7 @@ class IssueController extends Controller
                         "reason"  => null,
                         "msg"     => "Issue data fetched successfully",
                         "data"    => $data
-                    ], $this->status_created);
+                    ], $this->status_ok);
                 }
             }
             return response()->json([
