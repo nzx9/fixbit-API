@@ -21,11 +21,11 @@ class statController extends Controller
     private $status_notfound = 404;
 
     /**
-     * Display a listing of the resource.
+     * Display the stats of the user
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function myStats()
     {
         $user = Auth::user();
         if(!is_null($user)){
@@ -114,4 +114,44 @@ class statController extends Controller
         }
     }
 
+    /**
+     * Display the stats of the team
+     *
+     * @param  int  $tid
+     * @return \Illuminate\Http\Response
+     */
+
+     public function teamStats (int $tid) {
+        $user = Auth::user();
+        if(!is_null($user)){
+                $projects = Project::where('team_id', $tid)->get();
+                $data = [];
+                if(count($projects) > 0){
+                    foreach($projects as $project){
+                        $issue_total_count = count(DB::table("project_".$project->id)->get());
+                        $issue_open_count = count(DB::table("project_".$project->id)->where("is_open", true)->get());
+                        $data[] = array(
+                            "info"            => $project,
+                            "open_issue_count"   => $issue_open_count,
+                            "closed_issue_count" => $issue_total_count - $issue_open_count
+                        );
+                    }
+                }
+                return response()->json([
+                    "success" => true,
+                    "type"    => "success",
+                    "reason"  => null,
+                    "msg"     => "Stats fetched successfully",
+                    "data"    => $data
+                ],$this->status_ok);
+        }else{
+            return response()->json([
+                "success" => false,
+                "type"    => "error",
+                "reason"  => "unauthorized",
+                "msg"     => "Unauthorized",
+                "data"    => null
+            ], $this->status_unauthorized);
+        }
+    }
 }

@@ -29,6 +29,7 @@ Route::middleware("auth:api")->group(function () {
     Route::resource("projects/{pid}/issues", IssueController::class);
     Route::resource("teams", TeamController::class);
     Route::resource("teams/{tid}/members", MemberController::class);
-    Route::get("stats", [StatController::class, "index"]);
+    Route::get("stats", [StatController::class, "myStats"]);
+    Route::get("stats/teams/{tid}", [StatController::class, "teamStats"]);
 });
 
