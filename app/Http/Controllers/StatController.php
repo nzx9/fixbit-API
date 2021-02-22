@@ -126,14 +126,29 @@ class statController extends Controller
         if(!is_null($user)){
                 $projects = Project::where('team_id', $tid)->get();
                 $data = [];
+                $issues_by_month = [];
                 if(count($projects) > 0){
                     foreach($projects as $project){
-                        $issue_total_count = count(DB::table("project_".$project->id)->get());
+                        $issues = DB::table("project_".$project->id)->get();
+                        foreach($issues as $issue){
+                            if(!is_null($issue->created_at)){
+                                $yyyy_mm = substr($issue->created_at, 0, 7);
+                                if(!array_key_exists((string) $yyyy_mm, $issues_by_month)){
+                                    $issues_by_month[$yyyy_mm] = array("open" => 0, "closed" => 0);
+                                }
+                                if($issue->is_open){
+                                    $issues_by_month[$yyyy_mm]["open"]++;
+                                }else{
+                                    $issues_by_month[$yyyy_mm]["closed"]++;
+                                }
+                            }
+                        }
+                        $issue_total_count = count($issues);
                         $issue_open_count = count(DB::table("project_".$project->id)->where("is_open", true)->get());
                         $data[] = array(
-                            "info"            => $project,
+                            "info"               => $project,
                             "open_issue_count"   => $issue_open_count,
-                            "closed_issue_count" => $issue_total_count - $issue_open_count
+                            "closed_issue_count" => $issue_total_count - $issue_open_count,
                         );
                     }
                 }
@@ -142,7 +157,7 @@ class statController extends Controller
                     "type"    => "success",
                     "reason"  => null,
                     "msg"     => "Stats fetched successfully",
-                    "data"    => $data
+                    "data"    => array("data" => $data, "timeline" => $issues_by_month)
                 ],$this->status_ok);
         }else{
             return response()->json([
