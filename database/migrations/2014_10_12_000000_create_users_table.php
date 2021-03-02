@@ -24,6 +24,7 @@ class CreateUsersTable extends Migration
             $table->string('twitter')->length(50)->nullable();
             $table->string('linkedIn')->length(50)->nullable();
             $table->string('github')->length(50)->nullable();
+            $table->timestamp('last_login')->nullable()->default(NULL);
             $table->timestamps();
         });
     }

@@ -94,7 +94,7 @@ class UserController extends Controller
         if (Auth::guard('web')->attempt(['email' => $request->email, 'password' => $request->password])) {
             $user = Auth::guard('web')->user();
             $token = $user->createToken("fixbit-api")->accessToken;
-
+            User::where('id', $user->id)->update(['last_login' => now()]);
             return response()->json([
                 "success" => true,
                 "type"    => "success",
