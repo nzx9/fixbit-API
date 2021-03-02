@@ -227,7 +227,7 @@ class IssueController extends Controller
                         "success" => true,
                         "type"    => "success",
                         "reason"  => null,
-                        "msg"     => "Comment created",
+                        "msg"     => "Comment Added",
                         "data"    => null
                     ], $this->status_ok);
                 }else{
@@ -281,14 +281,12 @@ class IssueController extends Controller
                             "data"    => null], $this->status_badrequest);
                     }
                 }else{
-                    if(!is_null($request->comments)){
-                    }
                     $request->request->add(['updated_at' => $issue->freshTimeStamp()]);
                     $updated = $issue->updateIssue($pid, $iid,
                     $request->only([
                         'title','description', 'is_open',
                         'priority', 'type', 'assign_to', 'attachments',
-                        'updated_at'
+                        'updated_at', 'comments'
                         ])
                     );
 
