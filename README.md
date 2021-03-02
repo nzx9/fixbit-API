@@ -13,10 +13,10 @@ Fixbit API is accessible, powerful, and provides easy API endpoints to manage is
 
 ## Fixbit API Development Team
 
--   [Navindu](https://github.com/krypto-i9)
--   [Jennive](https://github.com/cole-js)
--   [Sandul](https://github.com/sa-ndman)
--   [Gowrisha](https://github.com/Krishnamaayah)
+-   [Navindu](https://github.com/krypto-i9) as SE
+-   [Jennive](https://github.com/cole-js) as PM
+-   [Sandul](https://github.com/sa-ndman) as DBA
+-   [Gowrisha](https://github.com/Krishnamaayah) as BA
 
 ## Fixbit API Sponsors
 
@@ -26,7 +26,7 @@ Fixbit API is accessible, powerful, and provides easy API endpoints to manage is
 
 ## Contributing
 
-If you discover a issue or need to request new features. File a issue at [GitHub](https://github.com/krypto-i9/fixbit-API/issues) or [Fixbit](https://fixbit-app.herokuapp.com/#/projects/2).
+If you discover a issue or need to request new features. File a issue at [GitHub](https://github.com/krypto-i9/fixbit-API/issues) or [Fixbit](https://fixbit-app.herokuapp.com/projects/2).
 
 ## Security Vulnerabilities
 
