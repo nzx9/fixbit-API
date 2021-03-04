@@ -47,18 +47,22 @@ class ProjectController extends Controller
                 $data = [];
                 $per_page = is_numeric($request->per_page) && $request->per_page > 0 && $request->per_page == round($request->per_page, 0) ? $request->per_page : 20;
 
-                if($request->sort === "name_asc"){
-                    $projects = Project::whereIn('id', $project_ids)->orderBy('name', 'asc')->paginate($per_page);
-                }else if($request->sort === "name_desc")
+                if($request->search !== null){
+                    $projects = Project::whereIn('id', $project_ids)->where('name', 'LIKE', "%$request->search%")->latest()->paginate($per_page);
+                }else{
+                    if($request->sort === "name_asc"){
+                        $projects = Project::whereIn('id', $project_ids)->orderBy('name', 'asc')->paginate($per_page);
+                    }else if($request->sort === "name_desc")
                     $projects = Project::whereIn('id', $project_ids)->orderBy('name', 'desc')->paginate($per_page);
-                else if($request->sort === "latest")
+                    else if($request->sort === "latest")
                     $projects = Project::whereIn('id', $project_ids)->latest()->paginate($per_page);
-                else if($request->sort === "oldest")
+                    else if($request->sort === "oldest")
                     $projects = Project::whereIn('id', $project_ids)->oldest()->paginate($per_page);
-                else if($request->sort === "pid_desc")
+                    else if($request->sort === "pid_desc")
                     $projects = Project::whereIn('id', $project_ids)->orderBy('id', 'desc')->paginate($per_page);
-                else
+                    else
                     $projects = Project::whereIn('id', $project_ids)->paginate($per_page);
+                }
 
                 foreach($projects as $project){
                     $team_data = null;
