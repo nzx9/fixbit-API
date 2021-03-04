@@ -27,22 +27,42 @@ class ProjectController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         if(!is_null($user)){
-            $project_ids = ProjectUserSearch::where('uid', $user->id)->orWhere('is_public', true)->distinct()->get('pid');
+            $project_ids = [];
+
+            if($request->filter === "my")
+                $project_ids = ProjectUserSearch::where('uid', $user->id)->distinct()->get('pid');
+            else if($request->filter === "public")
+                $project_ids = ProjectUserSearch::where('is_public', true)->distinct()->get('pid');
+            else if($request->filter === "private")
+                $project_ids = ProjectUserSearch::where('uid', $user->id)->where('is_public', false)->distinct()->get('pid');
+            else
+                $project_ids = ProjectUserSearch::where('uid', $user->id)->orWhere('is_public', true)->distinct()->get('pid');
+
             if(count($project_ids) >= 0){
                 $projects = [];
                 $data = [];
-                foreach($project_ids as $project_id){
-                    $projects[] = Project::find($project_id);
-                }
+                $per_page = is_numeric($request->per_page) && $request->per_page > 0 && $request->per_page == round($request->per_page, 0) ? $request->per_page : 20;
+
+                if($request->sort === "name_asc"){
+                    $projects = Project::whereIn('id', $project_ids)->orderBy('name', 'asc')->paginate($per_page);
+                }else if($request->sort === "name_desc")
+                    $projects = Project::whereIn('id', $project_ids)->orderBy('name', 'desc')->paginate($per_page);
+                else if($request->sort === "latest")
+                    $projects = Project::whereIn('id', $project_ids)->latest()->paginate($per_page);
+                else if($request->sort === "oldest")
+                    $projects = Project::whereIn('id', $project_ids)->oldest()->paginate($per_page);
+                else if($request->sort === "pid_desc")
+                    $projects = Project::whereIn('id', $project_ids)->orderBy('id', 'desc')->paginate($per_page);
+                else
+                    $projects = Project::whereIn('id', $project_ids)->paginate($per_page);
 
                 foreach($projects as $project){
                     $team_data = null;
                     $member_data = null;
-                    $project = $project[0];
                     if(!is_null($project->team_id)){
                         $team_data = Team::find($project->team_id);
                         $member_data = DB::table("team_".$project->team_id)->get();
@@ -56,8 +76,8 @@ class ProjectController extends Controller
                         'admin' => $admin,
                         'issue' => array(
                             'total' => $issue_total_count,
-                            'open'  => $issue_open_count
-                        )
+                            'open'  => $issue_open_count,
+                        ),
                     );
                 }
                 return response()->json([
@@ -65,7 +85,15 @@ class ProjectController extends Controller
                     "type"    => "success",
                     "reason"  => null,
                     "msg"     => "Projects fetched successfully",
-                    "data"    => $data], $this->status_ok);
+                    "data"    => array(
+                                    'data' => $data,
+                                    'pagination' => array(
+                                        'total'        => $projects->total(),
+                                        'per_page'     => $projects->perPage(),
+                                        'page' => $projects->currentPage(),
+                                        'count'        => $projects->count()
+                                    )
+                                )], $this->status_ok);
             }else{
                 return response()->json([
                     "success" => false,
