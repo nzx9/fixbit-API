@@ -86,7 +86,7 @@ class ProjectController extends Controller
                 }
                 return response()->json([
                     "success" => true,
-                    "type"    => "success",
+                    "type"    => "info",
                     "reason"  => null,
                     "msg"     => "Projects fetched successfully",
                     "data"    => array(
@@ -239,9 +239,9 @@ class ProjectController extends Controller
                     ), 'admin' => $admin);
                 return response()->json([
                     "success" => true,
-                    "type"    => "success",
+                    "type"    => "info",
                     "reason"  => null,
-                    "msg"     => "Project view success",
+                    "msg"     => "Project fetched successfully",
                     "data"    => $data], $this->status_ok);
             }else{
                 return response()->json([

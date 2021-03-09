@@ -89,7 +89,7 @@ class statController extends Controller
             }
             return response()->json([
                 "success" => true,
-                "type"    => "success",
+                "type"    => "info",
                 "reason"  => null,
                 "msg"     => "Stats fetched successfully",
                 "data"    => array(
@@ -154,7 +154,7 @@ class statController extends Controller
                 }
                 return response()->json([
                     "success" => true,
-                    "type"    => "success",
+                    "type"    => "info",
                     "reason"  => null,
                     "msg"     => "Stats fetched successfully",
                     "data"    => array("data" => $data, "timeline" => $issues_by_month)

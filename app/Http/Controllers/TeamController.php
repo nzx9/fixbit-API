@@ -45,7 +45,7 @@ class TeamController extends Controller
                 }
                 return response()->json([
                     "success" => true,
-                    "type"    => "success",
+                    "type"    => "info",
                     "reason"  => null,
                     "msg"     => "Teams fetched successfully",
                     "data"    => $teams
@@ -160,9 +160,9 @@ class TeamController extends Controller
             if(!is_null($team)){
                 return response()->json([
                     "success" => true,
-                    "type"    => "success",
+                    "type"    => "info",
                     "reason"  => null,
-                    "msg"     => "Team view success",
+                    "msg"     => "Team fetched successfully",
                     "data"    => $team], $this->status_ok);
             }else{
                 return response()->json([

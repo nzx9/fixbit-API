@@ -39,7 +39,7 @@ class MemberController extends Controller
                 $data = $member_cls->getInfoOfTeam($tid);
                 return response()->json([
                     "success" => true,
-                    "type"    => "success",
+                    "type"    => "info",
                     "reason"  => null,
                     "msg"     => "Member information fetched",
                     "data"    => $data], $this->status_ok);
@@ -192,7 +192,7 @@ class MemberController extends Controller
                     );
                     return response()->json([
                         "success" => true,
-                        "type"    => "success",
+                        "type"    => "info",
                         "reason"  => null,
                         "msg"     => "Member data fetched successfully",
                         "data"    => $data

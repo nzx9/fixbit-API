@@ -40,7 +40,7 @@ class IssueController extends Controller
                 $issues = $issue->getAllIssues($pid);
                 return response()->json([
                 "success" => true,
-                "type"    => "success",
+                "type"    => "info",
                 "reason"  => null,
                 "msg"     => "Issues fetched successfully",
                 "data"    => $issues], $this->status_ok);
@@ -180,7 +180,7 @@ class IssueController extends Controller
                         ), 'admin' => $admin);
                     return response()->json([
                         "success" => true,
-                        "type"    => "success",
+                        "type"    => "info",
                         "reason"  => null,
                         "msg"     => "Issue data fetched successfully",
                         "data"    => $data
