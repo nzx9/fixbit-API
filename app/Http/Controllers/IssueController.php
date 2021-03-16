@@ -218,6 +218,26 @@ class IssueController extends Controller
         $user = Auth::user();
         if(!is_null($user)){
             $issue = new Issue();
+            if(count($request->input()) === 2 && $request->commentAction === true){
+                $updated = $issue->updateIssueByColumn($pid, $iid, 'comments', $request->comments);
+                if($updated){
+                    return response()->json([
+                        "success" => true,
+                        "type"    => "success",
+                        "reason"  => null,
+                        "msg"     => "Comments updated",
+                        "data"    => null
+                    ], $this->status_ok);
+                }else{
+                    return response()->json([
+                        "success" => false,
+                        "type"    => "error",
+                        "reason"  => "unknown",
+                        "msg"     => "Something went wrong, please contact support",
+                        "data"    => null
+                    ], $this->status_badrequest);
+                }
+            }
             if(count($request->input()) === 1 && $request->comments !== null){
                 $updated = $issue->updateCommentsColumn($pid, $iid, $request->comments, $issue->freshTimeStamp());
                 if($updated) {
