@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use App\Events\CommentNotifyEvent;
+use App\Events\IssueAssignNotifyEvent;
 
 class IssueController extends Controller
 {
@@ -301,6 +302,7 @@ class IssueController extends Controller
                             "data"    => null], $this->status_badrequest);
                     }
                 }else{
+                    $prev_issue_data = $issue->getIssue($pid, $iid);
                     $request->request->add(['updated_at' => $issue->freshTimeStamp()]);
                     $updated = $issue->updateIssue($pid, $iid,
                     $request->only([
@@ -311,6 +313,12 @@ class IssueController extends Controller
                     );
 
                     if($updated){
+                        if($request->assign_to !== null){
+                            $issue_data = $issue->getIssue($pid, $iid);
+                            if($issue_data[0]->assign_to !== NULL && $issue_data[0]->assign_to !== $prev_issue_data[0]->assign_to){
+                               event(new IssueAssignNotifyEvent($issue_data[0]->assign_to,$issue_data[0]->priority,  $pid, $iid));
+                            }
+                        }
                         return response()->json([
                             "success" => true,
                             "type"    => "success",

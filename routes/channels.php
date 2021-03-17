@@ -20,3 +20,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('comments.{assigneeId}', function ($user, $assigneeId) {
     return (int) $user->id === (int) $assigneeId;
 });
+
+Broadcast::channel('isu-assign.{assigneeId}', function ($user, $assigneeId) {
+    return (int) $user->id === (int) $assigneeId;
+});
