@@ -43,6 +43,6 @@ class CommentNotifyEvent implements ShouldBroadcast
      * @return string
      */
     public function broadcastAs() {
-        return 'comment-created';
+        return 'comment.created';
     }
 }

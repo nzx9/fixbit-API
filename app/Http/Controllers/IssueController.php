@@ -315,7 +315,7 @@ class IssueController extends Controller
                     if($updated){
                         if($request->assign_to !== null){
                             $issue_data = $issue->getIssue($pid, $iid);
-                            if($issue_data[0]->assign_to !== NULL && $issue_data[0]->assign_to !== $prev_issue_data[0]->assign_to){
+                            if($issue_data[0]->assign_to !== NULL && (boolean) $issue_data[0]->is_open === true && $issue_data[0]->assign_to !== $prev_issue_data[0]->assign_to){
                                event(new IssueAssignNotifyEvent($issue_data[0]->assign_to,$issue_data[0]->priority,  $pid, $iid));
                             }
                         }
