@@ -13,6 +13,7 @@ class IssueAssignNotifyEvent implements ShouldBroadcast
 
     public $assigneeId;
     public $priority;
+    public $username;
     public $pid;
     public $iid;
 
@@ -21,10 +22,11 @@ class IssueAssignNotifyEvent implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct(int $assigneeId,int $priority, int $pid,int $iid)
+    public function __construct(int $assigneeId,int $priority,string $username, int $pid,int $iid)
     {
         $this->assigneeId = $assigneeId;
         $this->priority = $priority;
+        $this->username = $username;
         $this->pid = $pid;
         $this->iid = $iid;
     }
@@ -44,6 +46,6 @@ class IssueAssignNotifyEvent implements ShouldBroadcast
      * @return string
      */
     public function broadcastAs() {
-        return 'isu.assign.ed';
+        return 'isu-assign.ed';
     }
 }

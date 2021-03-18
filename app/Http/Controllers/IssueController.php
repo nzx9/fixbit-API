@@ -111,6 +111,9 @@ class IssueController extends Controller
                 );
                 $is = $issue->createIssue($pid, $data);
                 if($is){
+                    if($request->assign_to !== NULL && (boolean) $request->is_open === true && $user->id !== $request->assign_to){
+                        event(new IssueAssignNotifyEvent($request->assign_to, $request->priority, $user->username,  $pid, $iid));
+                     }
                     return response()->json([
                         "success" => true,
                         "type"    => "success",
@@ -313,10 +316,14 @@ class IssueController extends Controller
                     );
 
                     if($updated){
-                        if($request->assign_to !== null){
+                        if($request->assign_to !== null &&  $user->id !== $request->assign_to){
                             $issue_data = $issue->getIssue($pid, $iid);
-                            if($issue_data[0]->assign_to !== NULL && (boolean) $issue_data[0]->is_open === true && $issue_data[0]->assign_to !== $prev_issue_data[0]->assign_to){
-                               event(new IssueAssignNotifyEvent($issue_data[0]->assign_to,$issue_data[0]->priority,  $pid, $iid));
+                            if(
+                                $issue_data[0]->assign_to !== NULL &&
+                                (boolean) $issue_data[0]->is_open === true &&
+                                $issue_data[0]->assign_to !== $prev_issue_data[0]->assign_to
+                            ){
+                               event(new IssueAssignNotifyEvent($issue_data[0]->assign_to,$issue_data[0]->priority, $user->username,  $pid, $iid));
                             }
                         }
                         return response()->json([
