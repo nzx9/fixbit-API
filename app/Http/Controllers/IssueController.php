@@ -109,10 +109,10 @@ class IssueController extends Controller
                     "created_at" => $issue->freshTimestamp(),
                     "updated_at" => $issue->freshTimestamp()
                 );
-                $is = $issue->createIssue($pid, $data);
-                if($is){
+                $is_iid = $issue->createIssue($pid, $data);
+                if(!is_null($is_iid)){
                     if($request->assign_to !== NULL && (boolean) $request->is_open === true && $user->id !== $request->assign_to){
-                        event(new IssueAssignNotifyEvent($request->assign_to, $request->priority, $user->username,  $pid, $iid));
+                        event(new IssueAssignNotifyEvent($request->assign_to, $request->priority, $user->username,  $pid, $is_iid));
                      }
                     return response()->json([
                         "success" => true,
