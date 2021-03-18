@@ -64,16 +64,12 @@ class Issue extends Model
      *
      * @param int pid
      * @param array data
-     * @return boolean
+     * @return $iid || NULL
      */
     public function createIssue(int $pid,array $data){
-        $iid = DB::table('project_'.$pid)->insertGetId(
+        return DB::table('project_'.$pid)->insertGetId(
             $data
         );
-        if(!is_null($iid)){
-            return true;
-        }
-        return false;
     }
 
     /**
